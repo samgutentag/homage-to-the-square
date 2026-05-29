@@ -16,4 +16,16 @@ describe('useGeolocation', () => {
     await waitFor(() => expect(result.current.place).not.toBeNull())
     expect(result.current.place?.lat).toBeCloseTo(37.8, 5)
   })
+
+  it('falls back to a default place when geolocation and IP both fail', async () => {
+    vi.stubGlobal('navigator', {
+      geolocation: {
+        getCurrentPosition: (_ok: unknown, err: (e: unknown) => void) => err(new Error('denied')),
+      },
+    })
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')))
+    const { result } = renderHook(() => useGeolocation())
+    await waitFor(() => expect(result.current.place).not.toBeNull())
+    expect(result.current.place?.name).toMatch(/default/i)
+  })
 })

@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import type { ResolvedPlace } from '../engine/types'
 import { ipLocate, geocodeCity } from '../data/location'
 
+const DEFAULT_PLACE: ResolvedPlace = { lat: 37.77, lon: -122.42, name: 'San Francisco (default)' }
+
 interface GeoState {
   place: ResolvedPlace | null
   error: string | null
@@ -41,7 +43,10 @@ export const useGeolocation = (): GeoState => {
           const ip = await ipLocate()
           if (!cancelled) setPlace(ip)
         } catch (e) {
-          if (!cancelled) setError((e as Error).message)
+          if (!cancelled) {
+            setError((e as Error).message)
+            setPlace(DEFAULT_PLACE)
+          }
         }
       }
     })()

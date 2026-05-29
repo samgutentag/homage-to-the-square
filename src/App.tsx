@@ -79,6 +79,7 @@ const CitySearch = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Set city…"
+        aria-label="Set city"
         className="rounded border border-white/20 bg-black/40 px-2 py-1 text-xs text-white placeholder:text-white/40"
       />
     </form>
