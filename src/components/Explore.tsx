@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Painting } from './Painting'
 import { Timeline } from './Timeline'
 import { buildPalette } from '../engine/palette'
@@ -40,7 +40,9 @@ export const Explore = () => {
     return () => { if (raf.current) cancelAnimationFrame(raf.current); start.current = null }
   }, [active])
 
-  const set = (patch: Partial<Signals>) => { setActive(null); setS((prev) => ({ ...prev, ...patch })) }
+  const set = (patch: Partial<Signals>) => { start.current = null; setActive(null); setS((prev) => ({ ...prev, ...patch })) }
+
+  const gradient = useMemo(() => (active ? timelineGradient(active) : ''), [active])
 
   const elev = hourToElev(s.hour)
   const weather: Weather = {
@@ -66,7 +68,7 @@ export const Explore = () => {
         <div className="mt-4 w-[380px] text-center italic text-white/85">{title}</div>
         {active && (
           <div className="mt-4 flex justify-center">
-            <Timeline gradient={timelineGradient(active)} progress={progress} name={active.name} label={active.id === 'clearDay' ? fmtHour(s.hour) : `${Math.round(progress * 100)}%`} />
+            <Timeline gradient={gradient} progress={progress} name={active.name} label={active.id === 'clearDay' ? fmtHour(s.hour) : `${Math.round(progress * 100)}%`} />
           </div>
         )}
         <div className="mt-5 grid w-[380px] grid-cols-2 gap-2">
