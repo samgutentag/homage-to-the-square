@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homage — mapping dashboard</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#0b0b0b; color:#e7e7e7; font:14px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+  .wrap { display:flex; gap:2rem; padding:2rem; max-width:1120px; margin:0 auto; align-items:flex-start; flex-wrap:wrap; }
+  .stage { flex:0 0 auto; }
+  .pwrap { width:380px; height:380px; background:#0d0d0d; display:flex; align-items:center; justify-content:center; border-radius:6px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .painting { position:relative; width:360px; height:360px; }
+  .painting > div { position:absolute; transition: top 1s ease, left 1s ease, right 1s ease, bottom 1s ease, background-color 1s ease, opacity 1s ease; }
+  .title { margin-top:1rem; font-style:italic; opacity:.85; text-align:center; width:380px; min-height:2.5em; }
+  .squarecount { font-size:.72rem; opacity:.7; text-align:center; width:380px; margin-top:.3rem; }
+
+  .timeline { width:380px; margin-top:1rem; opacity:0; transition:opacity .4s ease; pointer-events:none; }
+  .timeline.on { opacity:1; }
+  .tlrow { position:relative; height:14px; }
+  .track { position:absolute; inset:0; border-radius:7px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); }
+  .head { position:absolute; top:-3px; bottom:-3px; width:2px; margin-left:-1px; background:#fff; box-shadow:0 0 7px rgba(255,255,255,.85); border-radius:2px; }
+  .tllabel { display:flex; justify-content:space-between; font-size:.64rem; opacity:.65; margin-top:.4rem; letter-spacing:.02em; }
+
+  .playthroughs { width:380px; margin-top:1.2rem; }
+  .ptgrid { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
+  button.pt { text-align:left; background:#161616; color:#e7e7e7; border:1px solid #333; border-radius:8px; padding:.6rem .7rem; font-size:.78rem; cursor:pointer; line-height:1.25; }
+  button.pt:hover { border-color:#d99536; }
+  button.pt.active { background:#d99536; color:#111; border-color:transparent; }
+  button.pt small { display:block; opacity:.6; font-size:.64rem; margin-top:2px; }
+  button.pt.active small { opacity:.75; }
+  .controls { flex:1 1 360px; min-width:340px; }
+  .toolbar { display:flex; gap:.6rem; margin-bottom:1.4rem; }
+  .row { margin-bottom:1.1rem; }
+  .row label { display:flex; justify-content:space-between; align-items:center; font-size:.8rem; margin-bottom:.3rem; letter-spacing:.02em; gap:.5rem; }
+  .row label .v { opacity:.7; font-variant-numeric:tabular-nums; min-width:96px; text-align:right; }
+  input[type=range] { width:100%; accent-color:#d99536; }
+  .grp { font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; opacity:.45; margin:1.4rem 0 .7rem; border-bottom:1px solid #262626; padding-bottom:.3rem; }
+  .toggle { background:#1c1c1c; color:#cdcdcd; border:1px solid #383838; border-radius:99px; padding:.35rem .8rem; font-size:.72rem; cursor:pointer; }
+  .toggle:hover { border-color:#d99536; color:#fff; }
+  .note { font-size:.72rem; opacity:.55; margin-top:1.2rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stage">
+    <div class="pwrap">
+      <div class="painting">
+        <div id="sq0"></div><div id="sq1"></div><div id="sq2"></div><div id="sq3"></div>
+      </div>
+    </div>
+    <div class="title" id="title"></div>
+    <div class="squarecount" id="count"></div>
+
+    <div class="timeline" id="timeline">
+      <div class="tlrow"><div class="track" id="track"></div><div class="head" id="head"></div></div>
+      <div class="tllabel"><span id="tlname"></span><span id="tltime"></span></div>
+    </div>
+
+    <div class="playthroughs">
+      <div class="grp">Playthroughs</div>
+      <div class="ptgrid">
+        <button class="pt" data-r="clearDay">Clear Day Arc<small>sun · squares rise &amp; fall</small></button>
+        <button class="pt" data-r="thunderstorm">Afternoon Thunderstorm<small>clouds, rain, darken, clear</small></button>
+        <button class="pt" data-r="fullMoon">Full Moon Night<small>moon waxes, center glows</small></button>
+        <button class="pt" data-r="rollingFog">Rolling Fog<small>squares merge &amp; separate</small></button>
+        <button class="pt" data-r="heatWave">Heat Wave<small>hot, vivid, warm hue</small></button>
+        <button class="pt" data-r="humidDrift">Humid Drift (3↔4)<small>composition morph</small></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="toolbar">
+      <button class="toggle" id="tunit">Temperature: °F</button>
+      <button class="toggle" id="sunit">Units: Imperial</button>
+    </div>
+
+    <div class="grp">Color signals</div>
+    <div class="row"><label>Time of day <span class="v" id="vhour"></span></label><input type="range" id="hour" min="0" max="24" step="0.25" value="13"></div>
+    <div class="row"><label>Temperature <span class="v" id="vtemp"></span></label><input type="range" id="temp" min="0" max="110" step="1" value="68"></div>
+    <div class="row"><label>Cloud cover <span class="v" id="vcloud"></span></label><input type="range" id="cloud" min="0" max="100" step="1" value="20"></div>
+    <div class="row"><label>Precipitation <span class="v" id="vprecip"></span></label><input type="range" id="precip" min="0" max="0.4" step="0.01" value="0"></div>
+    <div class="row"><label>Visibility / fog <span class="v" id="vvis"></span></label><input type="range" id="vis" min="0.03" max="12.4" step="0.05" value="12.4"></div>
+    <div class="row"><label>Moon illumination (night only) <span class="v" id="vmoon"></span></label><input type="range" id="moon" min="0" max="1" step="0.01" value="0.5"></div>
+
+    <div class="grp">Composition signal</div>
+    <div class="row"><label>Humidity → squares (3 ↔ 4) <span class="v" id="vhum"></span></label><input type="range" id="hum" min="0" max="100" step="1" value="30"></div>
+
+    <div class="note">Pick a playthrough to loop a scenario — the timeline above shows its color arc and a moving playhead. Time of day sets the sun's height (a simple day curve here; the live app computes it from your real location + date). Sun height drives square position + day/night; weather drives brightness + color.</div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+const clamp01 = v=>clamp(v,0,1);
+const lerp = (a,b,t)=>a+(b-a)*t;
+
+let tempUnit='F';
+let system='imperial';
+
+const hourToElev = h => 60*Math.sin(2*Math.PI*(h-6)/24);
+const fmtHour = h => { let hh=Math.floor(h)%24; let mm=Math.round((h-Math.floor(h))*60); if(mm===60){hh=(hh+1)%24;mm=0;} return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); };
+
+const tempToHue = t => { const x=clamp01((t-(-10))/(35-(-10))); return 250 + x*(50-250); };
+const grayness = (cloud,precip)=>clamp01(cloud/100*0.8 + precip/10*0.5);
+const skyToChroma = (cloud,precip)=>clamp01(1 - grayness(cloud,precip));
+const skyDayLightness = (cloud,precip)=>lerp(0.80,0.34, grayness(cloud,precip));
+const dayness = e => clamp01((e+6)/12);
+const lightnessFor = (cloud,precip,e)=>lerp(0.14, skyDayLightness(cloud,precip), dayness(e));
+const sunToWarmShift = e => Math.max(0,1-Math.abs(e)/10);
+const visToFog = v => clamp(v/10000,0.15,1);
+const isNight = e => e < -6;
+const sunToShift = e => lerp(8, 0, clamp01((e+10)/70));
+const rotateHue = (from,to,t)=>{ let d=((to-from+540)%360)-180; let r=from+d*t; return ((r%360)+360)%360; };
+const oklch = c => `oklch(${c.l.toFixed(4)} ${c.c.toFixed(4)} ${c.h.toFixed(2)})`;
+
+function buildPalette(env){
+  const baseL = 0.20 + env.lightness*0.45;
+  const step = 0.12*env.fogContrast;
+  const baseChroma = 0.02 + env.chroma*0.16;
+  const hue = rotateHue(env.hueDeg, 70, env.warmShift*0.6);
+  const cols=[];
+  for(let i=0;i<4;i++){
+    let l = baseL + i*step;
+    let c = Math.max(0, baseChroma*(1-i*0.12));
+    let h = (((hue+i*6)%360)+360)%360;
+    cols.push({l:clamp(l,0.05,0.97),c,h});
+  }
+  if(env.moonLift>0){ const inner=cols[3]; inner.l=clamp(inner.l+env.moonLift*0.25,0.05,0.97); inner.c+=env.moonLift*0.03; }
+  return cols;
+}
+function envFromParams(o){
+  const sun=hourToElev(o.hour);
+  return { hueDeg:tempToHue(o.tempC), chroma:skyToChroma(o.cloud,o.precipMm),
+           lightness:lightnessFor(o.cloud,o.precipMm,sun), warmShift:sunToWarmShift(sun),
+           fogContrast:visToFog(o.visM), moonLift: isNight(sun)?clamp01(o.moon):0 };
+}
+
+const T4 = [ {t:0,l:0,r:0,b:0}, {t:14,l:11,r:11,b:8}, {t:29,l:22,r:22,b:15}, {t:43,l:33,r:33,b:23} ];
+const T3 = [ {t:0,l:0,r:0,b:0}, {t:18,l:14,r:14,b:10}, {t:39,l:30,r:30,b:21}, {t:49,l:39,r:39,b:29} ];
+const lerpInset=(a,b,t)=>({t:lerp(a.t,b.t,t),l:lerp(a.l,b.l,t),r:lerp(a.r,b.r,t),b:lerp(a.b,b.b,t)});
+
+function warmth(h){ return h<110?'Warm':h<190?'Temperate':'Cool'; }
+function clarity(c){ return c>0.6?'Clarity':c>0.3?'Haze':'Overcast'; }
+function timeWord(e){ return e>40?'Midday':e>10?'Morning Light':e>-6?'Golden Hour':'Night'; }
+
+const tempToC = v => tempUnit==='F' ? (v-32)*5/9 : v;
+const precipToMm = v => system==='imperial' ? v*25.4 : v;
+const visToM = v => system==='imperial' ? v*1609.34 : v;
+
+function update(){
+  const hour=+$('hour').value;
+  const sun=hourToElev(hour);
+  const tempC = tempToC(+$('temp').value);
+  const cloud=+$('cloud').value;
+  const precipMm = precipToMm(+$('precip').value);
+  const visM = visToM(+$('vis').value);
+  const moon=+$('moon').value, hum=+$('hum').value;
+
+  $('vhour').textContent = fmtHour(hour)+'  ·  '+Math.round(sun)+'°';
+  $('vtemp').textContent = (+$('temp').value).toFixed(tempUnit==='F'?0:1)+(tempUnit==='F'?'°F':'°C');
+  $('vcloud').textContent=cloud+'%';
+  $('vprecip').textContent = system==='imperial' ? (+$('precip').value).toFixed(2)+' in' : (+$('precip').value).toFixed(1)+' mm';
+  $('vvis').textContent = system==='imperial' ? (+$('vis').value).toFixed(2)+' mi' : ((+$('vis').value)>=1000?((+$('vis').value)/1000).toFixed(1)+' km':(+$('vis').value)+' m');
+  $('vmoon').textContent=Math.round(moon*100)+'%';
+  $('vhum').textContent=hum+'%';
+
+  const env=envFromParams({hour,tempC,cloud,precipMm,visM,moon});
+  const pal=buildPalette(env);
+
+  const t = clamp01((hum-35)/30);
+  const shift = sunToShift(sun);
+  const base=[ T4[0], lerpInset(T4[1],T3[1],t), lerpInset(T4[2],T3[2],t), lerpInset(T4[3],T3[3],t) ];
+  const op=[1,1,1, 1-t];
+
+  for(let i=0;i<4;i++){
+    const el=$('sq'+i); let ins=base[i];
+    let top=ins.t, bottom=ins.b;
+    if(i>0){ top=ins.t+shift; bottom=Math.max(2, ins.b-shift); }
+    el.style.top=top+'%'; el.style.left=ins.l+'%'; el.style.right=ins.r+'%'; el.style.bottom=bottom+'%';
+    el.style.background=oklch(pal[i]); el.style.opacity=op[i];
+  }
+  $('title').textContent=`Homage to the Square: ${warmth(env.hueDeg)} ${clarity(env.chroma)}, ${timeWord(sun)}`;
+  $('count').textContent = t<0.4 ? '4 squares' : t>0.6 ? '3 squares' : 'morphing 4 → 3…';
+}
+
+$('tunit').addEventListener('click',()=>{
+  const c = tempToC(+$('temp').value);
+  tempUnit = tempUnit==='F'?'C':'F';
+  const el=$('temp');
+  if(tempUnit==='F'){ el.min=0; el.max=110; el.step=1; el.value=Math.round(c*9/5+32); }
+  else { el.min=-18; el.max=43; el.step=0.5; el.value=Math.round(c*2)/2; }
+  $('tunit').textContent = 'Temperature: '+(tempUnit==='F'?'°F':'°C');
+  update();
+});
+$('sunit').addEventListener('click',()=>{
+  const mm = precipToMm(+$('precip').value);
+  const m = visToM(+$('vis').value);
+  system = system==='imperial'?'metric':'imperial';
+  const p=$('precip'), v=$('vis');
+  if(system==='imperial'){ p.min=0;p.max=0.4;p.step=0.01;p.value=(mm/25.4).toFixed(2); v.min=0.03;v.max=12.4;v.step=0.05;v.value=(m/1609.34).toFixed(2); }
+  else { p.min=0;p.max=10;p.step=0.1;p.value=mm.toFixed(1); v.min=50;v.max=20000;v.step=50;v.value=Math.round(m/50)*50; }
+  $('sunit').textContent = 'Units: '+(system==='imperial'?'Imperial':'Metric');
+  update();
+});
+
+const setTempC = c => { $('temp').value = tempUnit==='F' ? Math.round(clamp(c,-18,43)*9/5+32) : (Math.round(clamp(c,-18,43)*2)/2); };
+const setPrecipMm = mm => { mm=clamp(mm,0,10); $('precip').value = system==='imperial' ? (mm/25.4).toFixed(2) : mm.toFixed(1); };
+const setVisM = m => { m=clamp(m,50,20000); $('vis').value = system==='imperial' ? (m/1609.34).toFixed(2) : Math.round(m/50)*50; };
+
+const ROUTINES = {
+  clearDay:     { name:'Clear Day Arc', dur:14000, fn:p=>({ hour:p*24, tempC:18, cloud:8,  precipMm:0, visM:20000, moon:0.3, hum:30 }) },
+  thunderstorm: { name:'Afternoon Thunderstorm', dur:13000, fn:p=>{ const k=Math.sin(Math.PI*p); return { hour:15.5, tempC:22-k*6, cloud:10+k*88, precipMm:k*8, visM:20000-k*18500, moon:0, hum:60 }; } },
+  fullMoon:     { name:'Full Moon Night', dur:12000, fn:p=>({ hour:1, tempC:11, cloud:12, precipMm:0, visM:20000, moon:0.5-0.5*Math.cos(2*Math.PI*p), hum:35 }) },
+  rollingFog:   { name:'Rolling Fog', dur:12000, fn:p=>{ const k=Math.sin(Math.PI*p); return { hour:11, tempC:13, cloud:45, precipMm:0, visM:20000-k*19500, moon:0, hum:40 }; } },
+  heatWave:     { name:'Heat Wave', dur:12000, fn:p=>{ const k=0.5-0.5*Math.cos(2*Math.PI*p); return { hour:13, tempC:28+k*12, cloud:5, precipMm:0, visM:20000, moon:0, hum:25 }; } },
+  humidDrift:   { name:'Humid Drift (3↔4)', dur:9000,  fn:p=>({ hour:14, tempC:20, cloud:15, precipMm:0, visM:20000, moon:0, hum:(Math.sin(2*Math.PI*p-Math.PI/2)*0.5+0.5)*100 }) },
+};
+
+// timeline: sample a representative square color across the loop -> gradient band
+function buildGradient(key){
+  const r=ROUTINES[key], N=24, stops=[];
+  for(let i=0;i<N;i++){ const p=i/(N-1); const pal=buildPalette(envFromParams(r.fn(p))); stops.push(oklch(pal[2])+' '+(p*100).toFixed(1)+'%'); }
+  return 'linear-gradient(90deg,'+stops.join(',')+')';
+}
+
+let active=null, raf=null, t0=null;
+function applyParams(o){
+  $('hour').value=o.hour.toFixed(2);
+  $('cloud').value=Math.round(o.cloud);
+  $('moon').value=o.moon.toFixed(2);
+  $('hum').value=Math.round(o.hum);
+  setTempC(o.tempC); setPrecipMm(o.precipMm); setVisM(o.visM);
+  update();
+}
+function stopRoutine(){
+  if(raf)cancelAnimationFrame(raf); raf=null; t0=null; active=null;
+  document.querySelectorAll('.pt').forEach(b=>b.classList.remove('active'));
+  $('timeline').classList.remove('on');
+}
+function startRoutine(key, btn){
+  if(active===key){ stopRoutine(); return; }
+  stopRoutine(); active=key; btn.classList.add('active');
+  const r=ROUTINES[key];
+  $('track').style.background=buildGradient(key);
+  $('tlname').textContent=r.name;
+  $('timeline').classList.add('on');
+  const step=ts=>{
+    if(t0===null)t0=ts;
+    const p=((ts-t0)%r.dur)/r.dur;
+    applyParams(r.fn(p));
+    $('head').style.left=(p*100).toFixed(2)+'%';
+    $('tltime').textContent = key==='clearDay' ? fmtHour(p*24) : Math.round(p*100)+'%';
+    raf=requestAnimationFrame(step);
+  };
+  raf=requestAnimationFrame(step);
+}
+document.querySelectorAll('.pt').forEach(btn=>btn.addEventListener('click',()=>startRoutine(btn.dataset.r, btn)));
+['hour','temp','cloud','precip','vis','moon','hum'].forEach(id=>$(id).addEventListener('input',()=>{ if(active)stopRoutine(); update(); }));
+
+update();
+</script>
+</body>
+</html>

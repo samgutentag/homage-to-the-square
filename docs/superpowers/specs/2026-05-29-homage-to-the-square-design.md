@@ -1,98 +1,106 @@
 # Homage to the Square — design spec
 
 **Date:** 2026-05-29
-**Status:** Approved for planning
+**Status:** Approved (design locked via interactive prototype)
 
 ## What it is
 
-A web app that renders a continuously-evolving Josef Albers "Homage to the Square" painting driven by the viewer's location, live weather, and the position of the sun. Inspired by [rothko.joonas.wtf](https://rothko.joonas.wtf/), but where the Rothko site picks among photographed paintings, this one *generates* the painting procedurally — because Albers' format is geometrically exact (3–4 flat nested squares on a shared vertical axis, pushed toward the bottom edge), it can be drawn faithfully from a palette in code. The result is a living piece that drifts minute to minute as the day and weather move.
+A client-side web app that renders a continuously-evolving Josef Albers "Homage to the Square" painting driven by the viewer's location, live weather, and the position of the sun. Inspired by [rothko.joonas.wtf](https://rothko.joonas.wtf/), but where the Rothko site picks among photographed paintings, this one *generates* the painting procedurally — Albers' format is geometrically exact (flat nested squares on a shared vertical axis, pushed toward the bottom), so it can be drawn faithfully from a palette in code. The painting drifts minute to minute as the day and weather move.
 
-## Core decisions (from brainstorming)
+A working prototype of the full mapping + the Explore mode lives at `prototype/dashboard.html` (standalone, no build step). It is the source of truth for the engine math and is preserved for the hosted site and the portfolio blog post.
 
-- **Rendering: procedural**, not photographed. Nested squares drawn in the browser, no painting image files.
-- **Layouts: traced from real Albers works.** A small catalog of authentic nesting proportions (3-square and 4-square formats) that Sam will source from real paintings. Geometry is authentic; color is live.
-- **Color mapping: approach C — weather sets the parameters, Albers' color logic constrains them.** Weather/sun drive hue/value/chroma *targets*; the palette generator enforces Albers-like relationships between squares so output always behaves like an Albers, even when the specific colors are novel and continuous.
-- **Signals in play:** temperature, sky condition, time-of-day (sun elevation), visibility/fog, moon phase. Cloud cover and precipitation are folded into a single "sky" model rather than separate dials. *Season was considered and dropped.*
-- **Living, not static:** the painting recomputes every minute (sun elevation is continuous) and tweens smoothly; weather re-polls every ~12 minutes.
-- **Three view modes** behind a picker: **Live** (side rail), **Ambient** (pure fullscreen), **Time-lapse** (side rail + scrub slider).
+## Signal → feature map (locked)
 
-## Signal → color/composition mapping
+All color math is done in **OKLCH** (perceptually uniform — keeps tweens and value steps even) and emitted as native CSS `oklch()` strings; the browser interpolates transitions. The painting is built from a palette (per-square colors) plus a composition (per-square insets).
 
-All color math happens in **OKLCH** (perceptually uniform — keeps tweens and value steps even). Each signal is first normalized to a 0–1 (or angular) value, then mapped to a color dimension:
+### Color (driven by weather)
+| Signal | Source | Drives |
+|---|---|---|
+| Temperature | Open-Meteo `temperature_2m` | **Base hue** — cold → cool (~250°), hot → warm (~50°) |
+| Sky grayness | `cloud_cover` + `precipitation` | **Chroma** (clear → vivid, overcast → gray) **and daytime brightness** (clear → light, storm → dark) |
+| Visibility / fog | `visibility` | **Contrast between squares** — fog compresses the value steps so adjacent squares nearly merge (the most Albers-authentic effect) |
+| Sun near horizon | sun elevation | **Golden-hour warm hue shift** (a hue effect, not brightness) |
+| Moon phase | moon illumination | **Innermost-square lift, night only** — brighter moon raises the center square's value/chroma |
 
-| Signal | Source | Drives | Behavior |
-|---|---|---|---|
-| Temperature | Open-Meteo `temperature_2m` | Base **hue** | Cold → cool hues (blue/teal), hot → warm hues (ochre/red). Mapped across a perceptual hue arc, clamped to a tasteful range. |
-| Sky condition + cloud + precip | `weather_code`, `cloud_cover`, `precipitation` | **Chroma** (saturation) + value damping | Clear → high chroma; overcast/rain → desaturated, slightly darker. One combined "grayness/intensity" scalar. |
-| Time of day | Sun elevation (computed) | Overall **lightness** + golden-hour warm shift | Continuous −90°→+90° sun-elevation curve → value baseline; near-horizon angles add a warm hue nudge (dawn/dusk). Night = deep low values. |
-| Visibility / fog | `visibility` | **Contrast between squares** | Low visibility compresses the value steps so adjacent squares nearly merge — the most Albers-authentic effect (his subject was color adjacency). |
-| Moon phase | Computed (illumination fraction) | Innermost-square lift, **night only** | After dark, a brighter moon raises the value/chroma of the centermost square — a small reward for looking at night. |
+### Composition + time (driven by the sun)
+| Signal | Source | Drives |
+|---|---|---|
+| Sun elevation | `time + place → elevation` (suncalc) | **Vertical position of the stack** (high sun lifts toward center, low sun pushes down) **and the day↔night brightness gate** (night is dark, which is what makes the moon lift read) |
+| Humidity | `relative_humidity_2m` | **Square count, 3 ↔ 4** — the one discrete lever; crossfades over a transition band, the innermost square fading as the spacing opens |
 
-**Why these axes work together:** temperature → hue, condition → chroma, time-of-day → lightness are nearly orthogonal in OKLCH, so signals layer without fighting. Fog acts on the *relationship* between squares rather than on the palette itself; moon is a bounded night-only flourish.
+**Key decision:** the sun's *visible* job is **position**, not brightness. Brightness comes from the weather, with the sun only gating day vs night. This was chosen deliberately over a "sun also dims through the day" model.
+
+**Composition stays close to the source.** Geometry is defined by two authentic Albers templates — a pushed-down 4-square and a pushed-down 3-square (top margin wide, bottom narrow, true squares: `top+bottom = left+right`). Humidity linearly interpolates between the two; the sun adds a bounded vertical offset. Every in-between frame is a blend of real Albers spacings — no invented geometry.
+
+**Signals considered and dropped:** season, wind speed, pressure.
+
+## Motion model
+
+Everything animates slowly and continuously — no jumps. Color and inset values tween via CSS transitions (~1s in the prototype; longer in production). The discrete 3↔4 change is handled by interpolating between the two templates plus fading the innermost square, so even the count change is smooth. In production:
+- **Sun-driven** values recompute every minute (elevation is continuous).
+- **Weather-driven** values re-poll every ~12 minutes.
+
+## View modes
+
+A mode picker switches the chrome treatment:
+- **Live** (default) — side rail: location, weather readout, local hour, generated title. Painting fills the rest.
+- **Ambient** — pure fullscreen; painting bleeds edge to edge; chrome auto-hides, reappearing on pointer move/tap.
+- **Explore** — the interactive dashboard (the prototype): sliders for every signal, two unit toggles (temperature °F/°C; Imperial/Metric for precipitation + visibility, **imperial by default**), and six **playthroughs**.
+- *(Time-lapse from the original spec is folded into Explore's playthroughs.)*
+
+### Playthroughs (Explore mode)
+Six scripted scenarios, each a pure function of loop-progress `p ∈ [0,1]`, each spotlighting a different signal, with a read-only **timeline** (a color band sampled from the engine across the loop + a moving playhead):
+1. **Clear Day Arc** — sun → squares rise and fall through a day
+2. **Afternoon Thunderstorm** — clouds build, rain peaks, desaturates + darkens, clears
+3. **Full Moon Night** — held at night, moon waxes, center square glows
+4. **Rolling Fog** — visibility drops, squares merge then separate
+5. **Heat Wave** — hot, vivid, warm hue
+6. **Humid Drift (3↔4)** — composition crossfade
 
 ## Architecture
 
-Stack: **React + TypeScript + Vite + Tailwind** (Sam's defaults). No backend — all client-side. Weather and geocoding via **Open-Meteo** (free, no API key). Sun and moon via **suncalc**.
+Stack: **React + TypeScript + Vite + Tailwind**. No backend. Weather + geocoding via **Open-Meteo** (free, no API key); IP fallback via ipapi.co; sun/moon via **suncalc**.
 
-The system splits into small, independently-testable units. The center of gravity is a **pure pipeline** (signals → environment → palette + layout) that has no React or I/O in it and is fully unit-testable; everything else is acquisition (hooks) or presentation (components).
+The center of gravity is a **pure pipeline** (`signals → environment → palette + composition`) with no React or I/O, fully unit-testable. The prototype's JS is the reference implementation.
 
-### 1. Signal acquisition (React hooks, the only I/O)
-- `useGeolocation()` — browser Geolocation API → `{ lat, lon }`. On denial/failure, falls back to Open-Meteo IP-based lookup, then to a manual city search (Open-Meteo geocoding API). Exposes the resolved place name for display.
-- `useWeather(lat, lon)` — fetches Open-Meteo current weather (`temperature_2m`, `weather_code`, `cloud_cover`, `precipitation`, `visibility`, `is_day`). Polls every ~12 min with exponential backoff on failure; retains last-good data.
-- `useClock()` — a one-minute tick (and a faster virtual tick in Time-lapse mode). Drives recomputation of sun-dependent values.
-- `useSky(lat, lon, time)` — wraps suncalc: sun elevation + moon illumination for the given instant.
+### Units (`src/engine/`)
+- `types.ts` — `Weather`, `Sky`, `Environment`, `OklchColor`, `Inset`, `LayoutTemplate`, `ViewMode`, `Scenario`.
+- `color.ts` — `oklchCss`, `clamp`, `clamp01`, `rotateHueToward`, `lerp`.
+- `mappers.ts` — `tempToHue`, `skyToChroma`, `skyDayLightness`, `lightnessFor` (with day/night gate), `sunToWarmShift`, `visibilityToFogContrast`, `moonToLift`, `sunToOffset`.
+- `environment.ts` — `deriveEnvironment(weather, sky)`.
+- `palette.ts` — `buildPalette(env, format)` (Albers color logic: monotonic value steps, fog compression, moon lift).
+- `composition.ts` — `buildComposition(humidity, sunElevation)` blends `T4`/`T3` templates + applies the sun offset.
+- `title.ts` — `generateTitle(env, date)`.
+- `sun.ts` — `elevationFor(date, lat, lon)` + `moonIlluminationFor(date)` (suncalc). **The swappable `time+place → elevation` boundary**; the Explore demo substitutes a simple sine `hourToElev`.
+- `scenarios.ts` — the six playthroughs as `(p) => signal values`, plus the timeline-gradient sampler.
 
-### 2. Mapping engine (pure, no React) — `src/engine/`
-- `deriveEnvironment(weather, sky)` → a normalized `Environment` struct: `{ tempNorm, grayness, lightness, warmShift, fogContrast, moonLift }`. One pure function per signal, composed here.
-- `buildPalette(env, format)` → `Color[]` (one OKLCH color per square). Encodes **Albers' color logic**: monotonic value steps between squares, bounded chroma progression, hue cohesion with controlled spread. `fogContrast` compresses the value deltas; `moonLift` adjusts the innermost color at night. This module is where "always looks like an Albers" lives.
-- `generateTitle(env, place, time)` → e.g. *"Homage to the Square: Warm Haze, Late Afternoon"*. Deterministic from inputs.
+### Data (`src/data/`)
+- `weather.ts` — `fetchWeather(lat, lon)` (Open-Meteo, includes `relative_humidity_2m`).
+- `location.ts` — `geocodeCity`, `ipLocate`.
 
-### 3. Layout catalog — `src/layouts/`
-- `layouts.json` — an array of templates traced from real Albers works. Each template: `{ id, source, format: 3|4, insets: [{top,left,right,bottom}, …] }` (per-square inset percentages). Sam sources these.
-- `pickLayout(seed)` — chooses a template deterministically from a stable seed (date + location) so the composition stays put through the day and only the color breathes. No flicker.
+### Hooks (`src/hooks/`)
+- `useClock` (minute tick), `useGeolocation` (browser → IP → manual city), `useWeather` (poll ~12 min, last-good retention), `useSky` (recompute elevation/moon per tick).
 
-### 4. Painting renderer — `src/components/Painting.tsx`
-- Renders the square as nested absolutely-positioned `<div>`s using the active layout's insets. Colors applied as CSS custom properties in `oklch()`; a `transition` on the color properties produces the smooth multi-second tween between recomputes. Letterboxed to a true square inside the viewport (centered on near-black) except in Ambient mode.
+### Components (`src/components/`)
+- `Painting` — nested square divs from composition + palette, CSS-tweened.
+- `SideRail`, `ModePicker`, `Overlay` (ambient auto-hide), `Explore` (sliders + toggles + playthroughs + `Timeline`).
 
-### 5. App shell + modes — `src/App.tsx`, `src/components/`
-- `ModeProvider` holds the current view mode (`live` | `ambient` | `timelapse`).
-- **Live** → `SideRail` visible: location, weather readout, local hour, mode picker. Painting fills the remainder.
-- **Ambient** → rail collapses; painting bleeds edge to edge; chrome (a translucent overlay with the same info + picker) appears on mouse-move/tap and auto-hides after a few seconds of stillness.
-- **Time-lapse** → side rail plus a `ScrubSlider` that advances a virtual clock through the coming/replayed day; the engine recomputes against the virtual time so the whole arc plays in ~10s.
+## Hosting + embedding (requirement)
 
-### Data flow
-
-```
-[useGeolocation] ─┐
-[useWeather] ─────┼─→ deriveEnvironment() ─→ buildPalette() ─┐
-[useSky] ─────────┘                                          ├─→ <Painting/> (CSS oklch tween)
-[useClock tick] ──→ (re-runs the pipeline each minute)        │
-[layouts.json] ─→ pickLayout(seed) ─────────────────────────┘
-                       │
-                       └─→ generateTitle() ─→ SideRail / overlay
-```
+- Builds to a static bundle (Vite). Deployable to GitHub Pages under the dev domain via the `deploy-to-gutentag` flow (`<name>.gutentag.world`).
+- The **Explore** view must work as a standalone, **iframe-embeddable** widget for the portfolio blog post (no external state, no required permissions — geolocation degrades to a default).
 
 ## Error handling
 
-- **Geolocation denied/unavailable:** fall back to IP lookup; if that fails, prompt for a city (geocoding search). Never hard-fail — degrade to a sensible default location with a visible note.
-- **Weather fetch failure:** keep last-good data, retry with backoff, show a subtle "stale" indicator in the rail. First-load-with-no-data shows a neutral mid-value palette and a quiet "locating…" state (mirrors the reference site).
-- **suncalc / time:** always available offline (pure math), so sun/moon never block rendering — the painting can run on time-of-day alone if weather is unreachable.
-- **Bad/empty layout catalog:** ship one built-in fallback template so the app renders before Sam adds traced layouts.
+- **Geolocation denied:** IP fallback → manual city search → sensible default with a visible note. Never hard-fail.
+- **Weather fetch failure:** keep last-good, retry with backoff, subtle "stale" indicator. First load shows a neutral mid-value painting + "locating…".
+- **Sun/moon:** pure math, always available offline — the painting runs on time-of-day alone if weather is unreachable.
 
 ## Testing
 
-- **Engine (primary):** unit-test each pure mapping function — temperature→hue monotonic and clamped; condition→chroma; sun-elevation→lightness across a day; fog→value-step compression; moon lift bounded and night-only. Test `buildPalette` invariants: correct color count per format, monotonic value steps, chroma within bounds, fog actually reduces inter-square contrast.
-- **Title generator:** deterministic snapshot tests across representative environments.
-- **`pickLayout`:** same seed → same template (stability), valid insets.
-- **Components:** smoke/render tests for `Painting` (renders N squares with expected CSS vars) and mode switching. Acquisition hooks mocked.
+- **Engine (primary):** unit-test each mapper (monotonicity, clamping, day/night gate, fog compression, moon night-only); `buildPalette` invariants (count, monotonic value steps, fog reduces spread, moon lifts innermost); `buildComposition` (count blend, sun offset bounded, insets valid); `generateTitle` snapshots; scenarios are pure and loop-continuous.
+- **Components:** render/smoke tests; mode switching; hooks mocked.
 
 ## Out of scope (YAGNI)
 
-- Backend, accounts, saving/sharing paintings.
-- Wind→composition and other unselected signals.
-- Real painting *images* (procedural only).
-- Mobile-native app (responsive web is enough).
-
-## Open items for Sam
-
-- Source the real-Albers layout templates (proportions for a few 3- and 4-square works) to populate `layouts.json`. The app ships with one fallback so this isn't a blocker.
+Backend, accounts, saving/sharing, dropped signals (season/wind/pressure), real painting *images*, native mobile.
