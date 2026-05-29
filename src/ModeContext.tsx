@@ -4,8 +4,8 @@ import type { ViewMode } from './engine/types'
 interface ModeCtx { mode: ViewMode; setMode: (m: ViewMode) => void }
 const Ctx = createContext<ModeCtx | null>(null)
 
-export const ModeProvider = ({ children }: { children: ReactNode }) => {
-  const [mode, setMode] = useState<ViewMode>('live')
+export const ModeProvider = ({ children, initialMode }: { children: ReactNode; initialMode?: ViewMode }) => {
+  const [mode, setMode] = useState<ViewMode>(initialMode ?? 'live')
   return <Ctx.Provider value={{ mode, setMode }}>{children}</Ctx.Provider>
 }
 

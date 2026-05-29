@@ -85,8 +85,14 @@ const CitySearch = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
   )
 }
 
-const App = () => (
-  <ModeProvider><Stage /></ModeProvider>
-)
+const App = () => {
+  const params = new URLSearchParams(window.location.search)
+  const initial = params.get('mode') === 'explore' ? 'explore' : undefined
+  return (
+    <ModeProvider initialMode={initial}>
+      <Stage />
+    </ModeProvider>
+  )
+}
 
 export default App
