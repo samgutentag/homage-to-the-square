@@ -1,13 +1,13 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { ResolvedPlace } from '../engine/types'
-import { ipLocate, geocodeCity } from '../data/location'
+import { ipLocate } from '../data/location'
 
 const DEFAULT_PLACE: ResolvedPlace = { lat: 37.77, lon: -122.42, name: 'San Francisco (default)' }
 
 interface GeoState {
   place: ResolvedPlace | null
   error: string | null
-  setCity: (name: string) => Promise<void>
+  selectPlace: (place: ResolvedPlace) => void
 }
 
 const browserCoords = (): Promise<{ lat: number; lon: number }> =>
@@ -23,13 +23,9 @@ export const useGeolocation = (): GeoState => {
   const [place, setPlace] = useState<ResolvedPlace | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const setCity = useCallback(async (name: string) => {
-    try {
-      setPlace(await geocodeCity(name))
-      setError(null)
-    } catch (e) {
-      setError((e as Error).message)
-    }
+  const selectPlace = useCallback((next: ResolvedPlace) => {
+    setPlace(next)
+    setError(null)
   }, [])
 
   useEffect(() => {
@@ -53,5 +49,5 @@ export const useGeolocation = (): GeoState => {
     return () => { cancelled = true }
   }, [])
 
-  return { place, error, setCity }
+  return { place, error, selectPlace }
 }

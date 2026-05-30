@@ -1,12 +1,24 @@
 import type { ResolvedPlace } from '../engine/types'
 
-export const geocodeCity = async (name: string): Promise<ResolvedPlace> => {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1`
+interface GeoHit {
+  latitude: number
+  longitude: number
+  name: string
+  admin1?: string
+  country?: string
+}
+
+/** Open-Meteo geocoding search — up to 5 candidate places, name disambiguated by region + country. */
+export const searchCities = async (name: string): Promise<ResolvedPlace[]> => {
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=5`
   const res = await fetch(url)
-  if (!res.ok) throw new Error(`geocode failed: ${res.status}`)
-  const hit = (await res.json()).results?.[0]
-  if (!hit) throw new Error(`no match for "${name}"`)
-  return { lat: hit.latitude, lon: hit.longitude, name: [hit.name, hit.country].filter(Boolean).join(', ') }
+  if (!res.ok) throw new Error(`city search failed: ${res.status}`)
+  const hits: GeoHit[] = (await res.json()).results ?? []
+  return hits.map((h) => ({
+    lat: h.latitude,
+    lon: h.longitude,
+    name: [h.name, h.admin1, h.country].filter(Boolean).join(', '),
+  }))
 }
 
 export const ipLocate = async (): Promise<ResolvedPlace> => {

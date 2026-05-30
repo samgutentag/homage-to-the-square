@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { ModeProvider, useMode } from './ModeContext'
 import { UnitsProvider, useUnits, formatTemp, formatDegree } from './UnitsContext'
 import { useClock } from './hooks/useClock'
@@ -25,7 +24,7 @@ const Stage = () => {
   const { mode } = useMode()
   const { fahrenheit } = useUnits()
   const now = useClock(60000)
-  const { place, error, setCity } = useGeolocation()
+  const { place, error, selectPlace } = useGeolocation()
   const lat = place?.lat ?? null
   const lon = place?.lon ?? null
   const { weather, stale } = useWeather(lat, lon)
@@ -87,32 +86,14 @@ const Stage = () => {
           hour={hour}
           title={title}
           stale={stale}
+          onSelectCity={selectPlace}
         />
         <div className="flex min-h-0 flex-1 items-center justify-center bg-[#0d0d0d] p-3">
           <Painting composition={composition} palette={palette} />
         </div>
-        <CitySearch onSubmit={setCity} />
       </div>
       {picker}
     </>
-  )
-}
-
-const CitySearch = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
-  const [value, setValue] = useState('')
-  return (
-    <form
-      onSubmit={(e) => { e.preventDefault(); if (value.trim()) onSubmit(value.trim()) }}
-      className="fixed bottom-4 right-4"
-    >
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Set city…"
-        aria-label="Set city"
-        className="rounded border border-white/20 bg-black/40 px-2 py-1 text-xs text-white placeholder:text-white/40"
-      />
-    </form>
   )
 }
 
