@@ -6,6 +6,7 @@ const sample = {
     temperature_2m: 18.4, weather_code: 3, cloud_cover: 75, precipitation: 0.2,
     visibility: 14000, relative_humidity_2m: 66, is_day: 1,
   },
+  daily: { temperature_2m_max: [22.1], temperature_2m_min: [11.5] },
 }
 
 afterEach(() => vi.restoreAllMocks())
@@ -16,6 +17,7 @@ describe('fetchWeather', () => {
     expect(await fetchWeather(37.8, -122.27)).toEqual({
       temperatureC: 18.4, weatherCode: 3, cloudCover: 75, precipitation: 0.2,
       visibilityM: 14000, relativeHumidity: 66, isDay: true,
+      highC: 22.1, lowC: 11.5,
     })
   })
   it('throws on a non-ok response', async () => {

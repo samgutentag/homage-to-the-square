@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Explore } from './Explore'
+import { UnitsProvider } from '../UnitsContext'
+
+const renderExplore = () => render(<UnitsProvider><Explore /></UnitsProvider>)
 
 describe('Explore', () => {
   it('renders sliders, unit toggles, and six playthroughs', () => {
-    render(<Explore />)
+    renderExplore()
     expect(screen.getByLabelText(/time of day/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/temperature/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Imperial|Metric/ })).toBeInTheDocument()
@@ -13,7 +16,7 @@ describe('Explore', () => {
   })
 
   it('renders the painting with four squares', () => {
-    const { container } = render(<Explore />)
+    const { container } = renderExplore()
     expect(container.querySelectorAll('[data-square]')).toHaveLength(4)
   })
 })

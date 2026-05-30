@@ -6,6 +6,8 @@ export interface Weather {
   visibilityM: number // meters
   relativeHumidity: number // 0..100
   isDay: boolean
+  highC: number // today's forecast high
+  lowC: number // today's forecast low
 }
 
 export interface Sky {

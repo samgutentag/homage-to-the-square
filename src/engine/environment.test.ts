@@ -4,7 +4,7 @@ import type { Weather, Sky } from './types'
 
 const clearWeather: Weather = {
   temperatureC: 20, weatherCode: 0, cloudCover: 0, precipitation: 0,
-  visibilityM: 20000, relativeHumidity: 40, isDay: true,
+  visibilityM: 20000, relativeHumidity: 40, isDay: true, highC: 24, lowC: 12,
 }
 
 describe('deriveEnvironment', () => {

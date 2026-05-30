@@ -6,6 +6,7 @@ import { buildComposition } from '../engine/composition'
 import { deriveEnvironment } from '../engine/environment'
 import { generateTitle } from '../engine/title'
 import { SCENARIOS, hourToElev, timelineGradient } from '../engine/scenarios'
+import { useUnits } from '../UnitsContext'
 import type { Scenario, Weather, Sky } from '../engine/types'
 
 interface Signals { hour: number; tempC: number; cloud: number; precipMm: number; visM: number; moon: number; humidity: number }
@@ -20,8 +21,7 @@ const fmtHour = (h: number) => {
 
 export const Explore = () => {
   const [s, setS] = useState<Signals>(INITIAL)
-  const [imperial, setImperial] = useState(true)
-  const [fahrenheit, setFahrenheit] = useState(true)
+  const { fahrenheit, imperial, setFahrenheit, setImperial } = useUnits()
   const [active, setActive] = useState<Scenario | null>(null)
   const [progress, setProgress] = useState(0)
   const raf = useRef<number | undefined>(undefined)
@@ -48,6 +48,7 @@ export const Explore = () => {
   const weather: Weather = {
     temperatureC: s.tempC, weatherCode: 0, cloudCover: s.cloud, precipitation: s.precipMm,
     visibilityM: s.visM, relativeHumidity: s.humidity, isDay: elev > 0,
+    highC: s.tempC, lowC: s.tempC,
   }
   const sky: Sky = { sunElevationDeg: elev, moonIllumination: s.moon }
   const env = deriveEnvironment(weather, sky)
