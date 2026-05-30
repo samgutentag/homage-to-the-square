@@ -8,6 +8,7 @@ export interface Weather {
   isDay: boolean
   highC: number // today's forecast high
   lowC: number // today's forecast low
+  dailyCode: number // today's forecast WMO weather code
 }
 
 export interface Sky {

@@ -2,7 +2,7 @@ import type { Weather } from '../engine/types'
 
 const CURRENT_FIELDS =
   'temperature_2m,weather_code,cloud_cover,precipitation,visibility,relative_humidity_2m,is_day'
-const DAILY_FIELDS = 'temperature_2m_max,temperature_2m_min'
+const DAILY_FIELDS = 'temperature_2m_max,temperature_2m_min,weather_code'
 
 export const fetchWeather = async (lat: number, lon: number): Promise<Weather> => {
   const url =
@@ -23,5 +23,6 @@ export const fetchWeather = async (lat: number, lon: number): Promise<Weather> =
     isDay: c.is_day === 1,
     highC: d.temperature_2m_max[0],
     lowC: d.temperature_2m_min[0],
+    dailyCode: d.weather_code[0],
   }
 }

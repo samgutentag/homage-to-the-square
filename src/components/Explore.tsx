@@ -48,7 +48,7 @@ export const Explore = () => {
   const weather: Weather = {
     temperatureC: s.tempC, weatherCode: 0, cloudCover: s.cloud, precipitation: s.precipMm,
     visibilityM: s.visM, relativeHumidity: s.humidity, isDay: elev > 0,
-    highC: s.tempC, lowC: s.tempC,
+    highC: s.tempC, lowC: s.tempC, dailyCode: 0,
   }
   const sky: Sky = { sunElevationDeg: elev, moonIllumination: s.moon }
   const env = deriveEnvironment(weather, sky)

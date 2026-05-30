@@ -19,6 +19,8 @@ import type { Environment } from './engine/types'
 
 const NEUTRAL: Environment = { hueDeg: 220, chroma: 0.25, lightness: 0.4, warmShift: 0, fogContrast: 1, moonLift: 0 }
 
+const capitalize = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+
 const Stage = () => {
   const { mode } = useMode()
   const { fahrenheit } = useUnits()
@@ -37,7 +39,7 @@ const Stage = () => {
   const conditionText = weather ? weatherCodeText(weather.weatherCode) : 'locating…'
   const tempText = weather ? formatTemp(weather.temperatureC, fahrenheit) : '—'
   const forecastText = weather
-    ? `↑${formatDegree(weather.highC, fahrenheit)} ↓${formatDegree(weather.lowC, fahrenheit)}`
+    ? `${capitalize(weatherCodeText(weather.dailyCode))} · High ${formatDegree(weather.highC, fahrenheit)}, Low ${formatDegree(weather.lowC, fahrenheit)}`
     : ''
 
   // The mode picker lives in one fixed spot across every view so it never jumps.

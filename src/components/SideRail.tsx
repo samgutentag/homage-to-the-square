@@ -20,11 +20,11 @@ export const SideRail = ({ placeName, tempText, conditionText, forecastText, hou
     </div>
     <div>
       <Label>Weather</Label>
-      <div className="flex items-baseline gap-2">
-        <span>{tempText} · {conditionText}</span>
-        {forecastText && <span className="text-xs text-white/45">{forecastText}</span>}
-        {stale && <span className="text-xs text-white/40">(stale)</span>}
+      <div>
+        {tempText} · {conditionText}
+        {stale && <span className="ml-2 text-xs text-white/40">(stale)</span>}
       </div>
+      {forecastText && <div className="mt-0.5 text-xs text-white/50">{forecastText}</div>}
     </div>
     <div><Label>Hour</Label><div>{hour}</div></div>
     <div className="mt-auto hidden md:block"><Label>Now showing</Label><div className="italic text-white/70">{title}</div></div>
