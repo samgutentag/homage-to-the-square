@@ -51,7 +51,7 @@ const Stage = () => {
   }
 
   return (
-    <div className="flex h-screen w-screen">
+    <div className="flex h-screen w-screen flex-col overflow-auto md:flex-row md:overflow-hidden">
       <SideRail
         placeName={place?.name ?? error ?? 'Locating…'}
         temperatureC={weather?.temperatureC ?? 0}
@@ -60,7 +60,7 @@ const Stage = () => {
         title={title}
         stale={stale}
       />
-      <div className="flex flex-1 items-center justify-center bg-[#0d0d0d]">
+      <div className="flex min-h-0 flex-1 items-center justify-center bg-[#0d0d0d] p-3">
         <Painting composition={composition} palette={palette} />
       </div>
       <CitySearch onSubmit={setCity} />

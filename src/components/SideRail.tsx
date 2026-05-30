@@ -14,7 +14,7 @@ const Label = ({ children }: { children: string }) => (
 )
 
 export const SideRail = ({ placeName, temperatureC, conditionText, hour, title, stale }: SideRailProps) => (
-  <aside className="flex h-full w-64 shrink-0 flex-col gap-4 bg-[#111] p-6 text-sm text-white/85">
+  <aside className="flex w-full shrink-0 flex-col gap-4 bg-[#111] p-6 text-sm text-white/85 md:h-full md:w-64">
     <div><Label>Location</Label><div>{placeName}</div></div>
     <div>
       <Label>Weather</Label>

@@ -1,7 +1,7 @@
 interface TimelineProps { gradient: string; progress: number; name: string; label: string }
 
 export const Timeline = ({ gradient, progress, name, label }: TimelineProps) => (
-  <div className="w-[380px]" data-timeline>
+  <div className="w-[min(95vw,380px)]" data-timeline>
     <div className="relative h-3.5">
       <div className="absolute inset-0 rounded-full" style={{ background: gradient, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.08)' }} />
       <div

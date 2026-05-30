@@ -60,18 +60,18 @@ export const Explore = () => {
   const precipDisplay = imperial ? (s.precipMm / 25.4).toFixed(2) + ' in' : s.precipMm.toFixed(1) + ' mm'
 
   return (
-    <div className="flex flex-wrap items-start gap-8 p-8">
+    <div className="flex flex-wrap items-start gap-6 p-4 md:gap-8 md:p-8">
       <div>
-        <div className="flex h-[380px] w-[380px] items-center justify-center rounded-md bg-[#0d0d0d]">
-          <div className="h-[360px] w-[360px]"><Painting composition={composition} palette={palette} /></div>
+        <div className="flex aspect-square w-[min(95vw,380px)] items-center justify-center rounded-md bg-[#0d0d0d] p-2">
+          <Painting composition={composition} palette={palette} />
         </div>
-        <div className="mt-4 w-[380px] text-center italic text-white/85">{title}</div>
+        <div className="mt-4 w-[min(95vw,380px)] text-center italic text-white/85">{title}</div>
         {active && (
           <div className="mt-4 flex justify-center">
             <Timeline gradient={gradient} progress={progress} name={active.name} label={active.id === 'clearDay' ? fmtHour(s.hour) : `${Math.round(progress * 100)}%`} />
           </div>
         )}
-        <div className="mt-5 grid w-[380px] grid-cols-2 gap-2">
+        <div className="mt-5 grid w-[min(95vw,380px)] grid-cols-2 gap-2">
           {SCENARIOS.map((sc) => (
             <button
               key={sc.id}
@@ -84,7 +84,7 @@ export const Explore = () => {
         </div>
       </div>
 
-      <div className="min-w-[340px] flex-1 text-white/85">
+      <div className="w-full text-white/85 md:min-w-[340px] md:flex-1">
         <div className="mb-5 flex gap-2">
           <button onClick={() => setFahrenheit((v) => !v)} className="rounded-full border border-white/30 px-3 py-1 text-xs">Temperature: {fahrenheit ? '°F' : '°C'}</button>
           <button onClick={() => setImperial((v) => !v)} className="rounded-full border border-white/30 px-3 py-1 text-xs">Units: {imperial ? 'Imperial' : 'Metric'}</button>
