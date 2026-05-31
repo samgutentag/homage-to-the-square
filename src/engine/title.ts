@@ -1,9 +1,9 @@
 import type { Environment } from './types'
 
-const warmthWord = (hueDeg: number): string =>
+export const warmthWord = (hueDeg: number): string =>
   hueDeg < 110 ? 'Warm' : hueDeg < 190 ? 'Temperate' : 'Cool'
 
-const clarityWord = (chroma: number): string =>
+export const clarityWord = (chroma: number): string =>
   chroma > 0.6 ? 'Clarity' : chroma > 0.3 ? 'Haze' : 'Overcast'
 
 export const timeOfDayWord = (hour: number): string => {

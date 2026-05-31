@@ -17,6 +17,8 @@ describe('Explore', () => {
 
   it('renders the painting with four squares', () => {
     const { container } = renderExplore()
-    expect(container.querySelectorAll('[data-square]')).toHaveLength(4)
+    // scope to the first painting (the main preview); Methodology adds more mini paintings
+    const main = container.querySelector('[role="img"]')!
+    expect(main.querySelectorAll('[data-square]')).toHaveLength(4)
   })
 })
