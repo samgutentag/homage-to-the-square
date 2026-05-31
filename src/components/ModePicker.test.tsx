@@ -9,7 +9,7 @@ describe('ModePicker', () => {
   it('switches the active mode', () => {
     render(<ModeProvider><ModePicker /><Probe /></ModeProvider>)
     expect(screen.getByTestId('mode').textContent).toBe('live')
-    fireEvent.click(screen.getByRole('button', { name: /explore/i }))
-    expect(screen.getByTestId('mode').textContent).toBe('explore')
+    fireEvent.click(screen.getByRole('button', { name: /playground/i }))
+    expect(screen.getByTestId('mode').textContent).toBe('playground')
   })
 })
