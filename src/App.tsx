@@ -88,7 +88,7 @@ const Stage = () => {
   if (mode === 'about') {
     return (
       <>
-        <div className="min-h-screen w-screen overflow-auto pt-20 text-white">
+        <div className="min-h-screen w-full overflow-x-hidden overflow-y-auto pt-20 text-white">
           <Explore />
         </div>
         <TopBar><ModePicker /></TopBar>
