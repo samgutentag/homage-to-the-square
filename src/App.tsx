@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { ModeProvider, useMode } from './ModeContext'
 import { UnitsProvider, useUnits, formatTemp, formatDegree } from './UnitsContext'
 import { useClock } from './hooks/useClock'
-import { useGeolocation } from './hooks/useGeolocation'
+import { usePlace } from './hooks/usePlace'
 import { useWeather } from './hooks/useWeather'
 import { useSky } from './hooks/useSky'
 import { deriveEnvironment } from './engine/environment'
@@ -58,9 +58,9 @@ const Stage = () => {
   const [chromeVisible, setChromeVisible] = useState(true)
   const bg = lightBg ? LIGHT_BG : DARK_BG
   const now = useClock(60000)
-  const { place, error, selectPlace } = useGeolocation()
-  const lat = place?.lat ?? null
-  const lon = place?.lon ?? null
+  const { place, selectPlace } = usePlace()
+  const lat = place.lat
+  const lon = place.lon
   const { weather, stale } = useWeather(lat, lon)
   const sky = useSky(now, lat, lon)
 
@@ -69,7 +69,7 @@ const Stage = () => {
   const composition = buildComposition(weather?.relativeHumidity ?? 50, sky?.sunElevationDeg ?? 30)
   const title = generateTitle(env, now)
   const hour = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  const placeName = place?.name ?? error ?? 'Locating…'
+  const placeName = place.name
   const conditionText = weather ? weatherCodeText(weather.weatherCode) : 'locating…'
   const tempText = weather ? formatTemp(weather.temperatureC, fahrenheit) : '—'
   const forecastShort = weather

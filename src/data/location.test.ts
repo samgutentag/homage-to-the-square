@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { searchCities, ipLocate } from './location'
+import { searchCities } from './location'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -24,15 +24,5 @@ describe('searchCities', () => {
   it('throws on a non-ok response', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }))
     await expect(searchCities('Berlin')).rejects.toThrow(/search/i)
-  })
-})
-
-describe('ipLocate', () => {
-  it('maps an IP response into a place', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ latitude: 37.8, longitude: -122.27, city: 'Oakland', region: 'California' }),
-    }))
-    expect(await ipLocate()).toEqual({ lat: 37.8, lon: -122.27, name: 'Oakland, California' })
   })
 })
