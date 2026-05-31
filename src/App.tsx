@@ -11,7 +11,6 @@ import { buildComposition } from './engine/composition'
 import { generateTitle } from './engine/title'
 import { weatherCodeText } from './weatherText'
 import { Painting } from './components/Painting'
-import { Overlay } from './components/Overlay'
 import { ModePicker } from './components/ModePicker'
 import { CitySearch } from './components/CitySearch'
 import { Explore } from './components/Explore'
@@ -55,6 +54,7 @@ const Stage = () => {
   const { mode } = useMode()
   const { fahrenheit } = useUnits()
   const [lightBg, setLightBg] = useState(false)
+  const [chromeVisible, setChromeVisible] = useState(true)
   const bg = lightBg ? LIGHT_BG : DARK_BG
   const now = useClock(60000)
   const { place, error, selectPlace } = useGeolocation()
@@ -95,43 +95,34 @@ const Stage = () => {
     )
   }
 
-  if (mode === 'ambient') {
-    return (
-      <div className="h-screen w-screen">
-        {canvas}
-        <Overlay>
-          <TopBar>
-            <BgToggle light={lightBg} onToggle={() => setLightBg((v) => !v)} />
-            <ModePicker />
-          </TopBar>
-          <Title light={lightBg}>{title}</Title>
-        </Overlay>
-      </div>
-    )
-  }
-
-  // Live: fullscreen painting, everything in a top pill, title bottom-left.
+  // Live: fullscreen painting. Click the painting to hide the chrome (go immersive),
+  // click again to bring it back. Clicks on the chrome itself don't toggle.
   return (
-    <>
-      <div className="h-screen w-screen">{canvas}</div>
-      <TopBar>
-        <div className="w-44 max-w-[60vw]">
-          <CitySearch onSelect={selectPlace} />
-        </div>
-        <Divider />
-        <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5">
-          <span className="font-medium text-white">{placeName}</span>
-          <span className="whitespace-nowrap">{tempText} {conditionText}</span>
-          {forecastShort && <span className="whitespace-nowrap text-white/55">{forecastShort}</span>}
-          <span>{hour}</span>
-          {stale && <span className="text-white/40">(stale)</span>}
-        </div>
-        <Divider />
-        <BgToggle light={lightBg} onToggle={() => setLightBg((v) => !v)} />
-        <ModePicker />
-      </TopBar>
-      <Title light={lightBg}>{title}</Title>
-    </>
+    <div className="h-screen w-screen" onClick={() => setChromeVisible((v) => !v)}>
+      {canvas}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={`transition-opacity duration-500 ${chromeVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+      >
+        <TopBar>
+          <div className="w-44 max-w-[60vw]">
+            <CitySearch onSelect={selectPlace} />
+          </div>
+          <Divider />
+          <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5">
+            <span className="font-medium text-white">{placeName}</span>
+            <span className="whitespace-nowrap">{tempText} {conditionText}</span>
+            {forecastShort && <span className="whitespace-nowrap text-white/55">{forecastShort}</span>}
+            <span>{hour}</span>
+            {stale && <span className="text-white/40">(stale)</span>}
+          </div>
+          <Divider />
+          <BgToggle light={lightBg} onToggle={() => setLightBg((v) => !v)} />
+          <ModePicker />
+        </TopBar>
+        <Title light={lightBg}>{title}</Title>
+      </div>
+    </div>
   )
 }
 

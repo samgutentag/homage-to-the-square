@@ -4,7 +4,6 @@ import { useMode } from '../ModeContext'
 
 const MODES: { value: ViewMode; label: string }[] = [
   { value: 'live', label: 'Live' },
-  { value: 'ambient', label: 'Ambient' },
   { value: 'playground', label: 'Playground' },
 ]
 
