@@ -20,8 +20,8 @@ import type { Environment } from './engine/types'
 const NEUTRAL: Environment = { hueDeg: 220, chroma: 0.25, lightness: 0.4, warmShift: 0, fogContrast: 1, moonLift: 0 }
 
 const TopBar = ({ children }: { children: ReactNode }) => (
-  <div className="fixed left-1/2 top-3 z-50 flex max-w-[calc(100vw-1rem)] -translate-x-1/2 justify-center">
-    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-white/15 bg-black/50 px-4 py-2 text-sm text-white/85 shadow-lg backdrop-blur-md">
+  <div className="fixed inset-x-2 top-2 z-50 flex justify-center sm:inset-x-0 sm:top-3">
+    <div className="flex w-full max-w-[calc(100vw-1rem)] flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-2xl border border-white/15 bg-black/55 px-4 py-2 text-sm text-white/85 shadow-lg backdrop-blur-md sm:w-auto sm:rounded-full">
       {children}
     </div>
   </div>
@@ -93,17 +93,10 @@ const Stage = () => {
           <CitySearch onSelect={selectPlace} />
         </div>
         <Divider />
-        <div className="flex flex-wrap items-center justify-center gap-x-1.5">
+        <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5">
           <span className="font-medium text-white">{placeName}</span>
-          <span className="text-white/30">·</span>
           <span className="whitespace-nowrap">{tempText} {conditionText}</span>
-          {forecastShort && (
-            <>
-              <span className="text-white/30">·</span>
-              <span className="whitespace-nowrap text-white/55">{forecastShort}</span>
-            </>
-          )}
-          <span className="text-white/30">·</span>
+          {forecastShort && <span className="whitespace-nowrap text-white/55">{forecastShort}</span>}
           <span>{hour}</span>
           {stale && <span className="text-white/40">(stale)</span>}
         </div>
