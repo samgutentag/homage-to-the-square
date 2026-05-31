@@ -30,7 +30,7 @@ const BgToggle = ({ light, onToggle }: { light: boolean; onToggle: () => void })
     title="Toggle background"
     className="rounded-full border border-white/40 px-2.5 py-1 text-xs leading-none text-white/85 hover:text-white"
   >
-    {light ? '☀' : '☾'}
+    {light ? '◑' : '◐'}
   </button>
 )
 
@@ -109,16 +109,21 @@ const Stage = () => {
             <CitySearch onSelect={selectPlace} />
           </div>
           <Divider />
-          <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5">
-            <span className="font-medium text-white">{placeName}</span>
-            <span className="whitespace-nowrap">{tempText} {conditionText}</span>
-            {forecastShort && <span className="whitespace-nowrap text-white/55">{forecastShort}</span>}
-            <span>{hour}</span>
-            {stale && <span className="text-white/40">(stale)</span>}
+          <div className="flex flex-col items-center justify-center leading-tight">
+            <div className="flex items-center gap-1.5">
+              <span className="font-medium text-white">{placeName}</span>
+              <span className="text-white/30">|</span>
+              <span>{hour}</span>
+              {stale && <span className="text-white/40">(stale)</span>}
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-x-2 text-white/70">
+              <span className="whitespace-nowrap">{tempText} {conditionText}</span>
+              {forecastShort && <span className="whitespace-nowrap text-white/50">{forecastShort}</span>}
+            </div>
           </div>
           <Divider />
-          <BgToggle light={lightBg} onToggle={() => setLightBg((v) => !v)} />
           <ModePicker />
+          <BgToggle light={lightBg} onToggle={() => setLightBg((v) => !v)} />
         </TopBar>
         <Title light={lightBg}>{title}</Title>
       </div>
