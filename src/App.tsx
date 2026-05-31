@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ModeProvider, useMode } from './ModeContext'
 import { UnitsProvider, useUnits, formatTemp, formatDegree } from './UnitsContext'
 import { useClock } from './hooks/useClock'
@@ -19,6 +19,22 @@ import type { Environment } from './engine/types'
 
 const NEUTRAL: Environment = { hueDeg: 220, chroma: 0.25, lightness: 0.4, warmShift: 0, fogContrast: 1, moonLift: 0 }
 
+// The "wall" the painting hangs on. Not pure black/white — a near-black and a soft gallery off-white.
+const DARK_BG = '#0d0d0d'
+const LIGHT_BG = '#f1efe8'
+
+const BgToggle = ({ light, onToggle }: { light: boolean; onToggle: () => void }) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    aria-label="Toggle background"
+    title="Toggle background"
+    className="rounded-full border border-white/40 px-2.5 py-1 text-xs leading-none text-white/85 hover:text-white"
+  >
+    {light ? '☀' : '☾'}
+  </button>
+)
+
 const TopBar = ({ children }: { children: ReactNode }) => (
   <div className="fixed inset-x-2 top-2 z-50 flex justify-center sm:inset-x-0 sm:top-3">
     <div className="flex w-full max-w-[calc(100vw-1rem)] flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-2xl border border-white/15 bg-black/55 px-4 py-2 text-sm text-white/85 shadow-lg backdrop-blur-md sm:w-auto sm:rounded-full">
@@ -29,13 +45,17 @@ const TopBar = ({ children }: { children: ReactNode }) => (
 
 const Divider = () => <span className="hidden h-5 w-px bg-white/15 sm:block" />
 
-const Title = ({ children }: { children: string }) => (
-  <div className="fixed bottom-6 left-6 z-40 max-w-[80vw] text-sm italic text-white/80">{children}</div>
+const Title = ({ children, light }: { children: string; light: boolean }) => (
+  <div className={`fixed bottom-6 left-6 z-40 max-w-[80vw] text-sm italic ${light ? 'text-black/70' : 'text-white/80'}`}>
+    {children}
+  </div>
 )
 
 const Stage = () => {
   const { mode } = useMode()
   const { fahrenheit } = useUnits()
+  const [lightBg, setLightBg] = useState(false)
+  const bg = lightBg ? LIGHT_BG : DARK_BG
   const now = useClock(60000)
   const { place, error, selectPlace } = useGeolocation()
   const lat = place?.lat ?? null
@@ -55,9 +75,12 @@ const Stage = () => {
     ? `↑${formatDegree(weather.highC, fahrenheit)} ↓${formatDegree(weather.lowC, fahrenheit)}`
     : ''
 
+  // Full-bleed wall, with the painting capped at 80% of the smaller axis so there's matting around it.
   const canvas = (
-    <div className="flex h-full w-full items-center justify-center bg-[#0d0d0d]" style={{ containerType: 'size' }}>
-      <Painting composition={composition} palette={palette} />
+    <div className="flex h-full w-full items-center justify-center" style={{ background: bg }}>
+      <div className="flex h-4/5 w-4/5 items-center justify-center" style={{ containerType: 'size' }}>
+        <Painting composition={composition} palette={palette} />
+      </div>
     </div>
   )
 
@@ -77,8 +100,11 @@ const Stage = () => {
       <div className="h-screen w-screen">
         {canvas}
         <Overlay>
-          <TopBar><ModePicker /></TopBar>
-          <Title>{title}</Title>
+          <TopBar>
+            <BgToggle light={lightBg} onToggle={() => setLightBg((v) => !v)} />
+            <ModePicker />
+          </TopBar>
+          <Title light={lightBg}>{title}</Title>
         </Overlay>
       </div>
     )
@@ -101,9 +127,10 @@ const Stage = () => {
           {stale && <span className="text-white/40">(stale)</span>}
         </div>
         <Divider />
+        <BgToggle light={lightBg} onToggle={() => setLightBg((v) => !v)} />
         <ModePicker />
       </TopBar>
-      <Title>{title}</Title>
+      <Title light={lightBg}>{title}</Title>
     </>
   )
 }
