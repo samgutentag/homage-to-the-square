@@ -21,9 +21,3 @@ export const searchCities = async (name: string): Promise<ResolvedPlace[]> => {
   }))
 }
 
-export const ipLocate = async (): Promise<ResolvedPlace> => {
-  const res = await fetch('https://ipapi.co/json/')
-  if (!res.ok) throw new Error(`ip locate failed: ${res.status}`)
-  const j = await res.json()
-  return { lat: j.latitude, lon: j.longitude, name: [j.city, j.region].filter(Boolean).join(', ') }
-}
