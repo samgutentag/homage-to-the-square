@@ -90,24 +90,25 @@ export const Explore = () => {
           <button onClick={() => setFahrenheit((v) => !v)} className="rounded-full border border-white/30 px-3 py-1 text-xs">Temperature: {fahrenheit ? '°F' : '°C'}</button>
           <button onClick={() => setImperial((v) => !v)} className="rounded-full border border-white/30 px-3 py-1 text-xs">Units: {imperial ? 'Imperial' : 'Metric'}</button>
         </div>
-        <Slider label="Time of day" value={fmtHour(s.hour) + ' · ' + Math.round(elev) + '°'} min={0} max={24} step={0.25} v={s.hour} onChange={(hour) => set({ hour })} />
-        <Slider label="Temperature" value={tempDisplay + (fahrenheit ? '°F' : '°C')} min={-18} max={43} step={0.5} v={s.tempC} onChange={(tempC) => set({ tempC })} />
-        <Slider label="Cloud cover" value={s.cloud + '%'} min={0} max={100} step={1} v={s.cloud} onChange={(cloud) => set({ cloud })} />
-        <Slider label="Precipitation" value={precipDisplay} min={0} max={10} step={0.1} v={s.precipMm} onChange={(precipMm) => set({ precipMm })} />
-        <Slider label="Visibility / fog" value={visDisplay} min={50} max={20000} step={50} v={s.visM} onChange={(visM) => set({ visM })} />
-        <Slider label="Moon illumination" value={Math.round(s.moon * 100) + '%'} min={0} max={1} step={0.01} v={s.moon} onChange={(moon) => set({ moon })} />
-        <Slider label="Humidity → squares (3↔4)" value={s.humidity + '%'} min={0} max={100} step={1} v={s.humidity} onChange={(humidity) => set({ humidity })} />
+        <Slider label="Time of day" hint="Sun height moves the squares: they rise toward center at midday, sink toward the bottom at night." value={fmtHour(s.hour) + ' · ' + Math.round(elev) + '°'} min={0} max={24} step={0.25} v={s.hour} onChange={(hour) => set({ hour })} />
+        <Slider label="Temperature" hint="Sets the base hue — cold leans cool blue, hot leans warm ochre." value={tempDisplay + (fahrenheit ? '°F' : '°C')} min={-18} max={43} step={0.5} v={s.tempC} onChange={(tempC) => set({ tempC })} />
+        <Slider label="Cloud cover" hint="More cloud drains the color and dims the daytime brightness." value={s.cloud + '%'} min={0} max={100} step={1} v={s.cloud} onChange={(cloud) => set({ cloud })} />
+        <Slider label="Precipitation" hint="Rain deepens the gray and darkens the whole painting." value={precipDisplay} min={0} max={10} step={0.1} v={s.precipMm} onChange={(precipMm) => set({ precipMm })} />
+        <Slider label="Visibility / fog" hint="Fog compresses the contrast between squares until they nearly merge." value={visDisplay} min={50} max={20000} step={50} v={s.visM} onChange={(visM) => set({ visM })} />
+        <Slider label="Moon illumination" hint="At night only, a brighter moon lifts the value of the innermost square." value={Math.round(s.moon * 100) + '%'} min={0} max={1} step={0.01} v={s.moon} onChange={(moon) => set({ moon })} />
+        <Slider label="Humidity → squares (3↔4)" hint="Higher humidity morphs the composition from four squares down to three." value={s.humidity + '%'} min={0} max={100} step={1} v={s.humidity} onChange={(humidity) => set({ humidity })} />
       </div>
     </div>
   )
 }
 
-interface SliderProps { label: string; value: string; min: number; max: number; step: number; v: number; onChange: (n: number) => void }
-const Slider = ({ label, value, min, max, step, v, onChange }: SliderProps) => (
+interface SliderProps { label: string; value: string; hint: string; min: number; max: number; step: number; v: number; onChange: (n: number) => void }
+const Slider = ({ label, value, hint, min, max, step, v, onChange }: SliderProps) => (
   <div className="mb-4">
     <label className="mb-1 flex justify-between text-xs">
       <span>{label}</span><span className="tabular-nums opacity-70">{value}</span>
     </label>
     <input aria-label={label} type="range" min={min} max={max} step={step} value={v} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-amber-500" />
+    <p className="mt-1 text-[0.68rem] leading-snug text-white/40">{hint}</p>
   </div>
 )

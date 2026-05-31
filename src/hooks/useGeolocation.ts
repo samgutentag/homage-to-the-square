@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import type { ResolvedPlace } from '../engine/types'
 import { ipLocate } from '../data/location'
 
-const DEFAULT_PLACE: ResolvedPlace = { lat: 34.4208, lon: -119.6982, name: 'Santa Barbara, CA (default)' }
+const DEFAULT_PLACE: ResolvedPlace = { lat: 34.4208, lon: -119.6982, name: 'Santa Barbara, CA' }
 
 interface GeoState {
   place: ResolvedPlace | null
