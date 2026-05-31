@@ -34,7 +34,7 @@ export interface Composition { insets: Inset[]; opacities: number[] }
 
 export interface ResolvedPlace { lat: number; lon: number; name: string }
 
-export type ViewMode = 'live' | 'ambient' | 'explore'
+export type ViewMode = 'live' | 'about'
 
 /** Canonical (metric) signal values a scenario emits at a point in its loop. */
 export interface ScenarioSignals {

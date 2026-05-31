@@ -1,3 +1,4 @@
+import { useState, type ReactNode } from 'react'
 import { ModeProvider, useMode } from './ModeContext'
 import { UnitsProvider, useUnits, formatTemp, formatDegree } from './UnitsContext'
 import { useClock } from './hooks/useClock'
@@ -10,19 +11,52 @@ import { buildComposition } from './engine/composition'
 import { generateTitle } from './engine/title'
 import { weatherCodeText } from './weatherText'
 import { Painting } from './components/Painting'
-import { SideRail } from './components/SideRail'
-import { Overlay } from './components/Overlay'
 import { ModePicker } from './components/ModePicker'
+import { CitySearch } from './components/CitySearch'
+import { PaintingTitle } from './components/HomageTitle'
 import { Explore } from './components/Explore'
 import type { Environment } from './engine/types'
 
 const NEUTRAL: Environment = { hueDeg: 220, chroma: 0.25, lightness: 0.4, warmShift: 0, fogContrast: 1, moonLift: 0 }
 
-const capitalize = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+// The "wall" the painting hangs on. Not pure black/white — a near-black and a soft gallery off-white.
+const DARK_BG = '#0d0d0d'
+const LIGHT_BG = '#f1efe8'
+
+const BgToggle = ({ light, onToggle }: { light: boolean; onToggle: () => void }) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    aria-label="Toggle background"
+    title="Toggle background"
+    className="rounded-full border border-white/40 px-2.5 py-1 text-xs leading-none text-white/85 hover:text-white"
+  >
+    {light ? '◑' : '◐'}
+  </button>
+)
+
+const TopBar = ({ children }: { children: ReactNode }) => (
+  <div className="fixed inset-x-2 top-2 z-50 flex justify-center sm:inset-x-0 sm:top-3">
+    <div className="flex w-full max-w-[calc(100vw-1rem)] flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-2xl border border-white/15 bg-black/55 px-4 py-2 text-sm text-white/85 shadow-lg backdrop-blur-md sm:w-auto sm:rounded-full">
+      {children}
+    </div>
+  </div>
+)
+
+const Divider = () => <span className="hidden h-5 w-px bg-white/15 sm:block" />
+
+const Title = ({ children, light }: { children: string; light: boolean }) => (
+  <div className={`fixed bottom-6 left-6 z-40 max-w-[80vw] text-sm italic ${light ? 'text-black/70' : 'text-white/80'}`}>
+    <PaintingTitle title={children} />
+  </div>
+)
 
 const Stage = () => {
   const { mode } = useMode()
   const { fahrenheit } = useUnits()
+  const [lightBg, setLightBg] = useState(false)
+  const [chromeVisible, setChromeVisible] = useState(true)
+  const bg = lightBg ? LIGHT_BG : DARK_BG
   const now = useClock(60000)
   const { place, error, selectPlace } = useGeolocation()
   const lat = place?.lat ?? null
@@ -35,71 +69,72 @@ const Stage = () => {
   const composition = buildComposition(weather?.relativeHumidity ?? 50, sky?.sunElevationDeg ?? 30)
   const title = generateTitle(env, now)
   const hour = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const placeName = place?.name ?? error ?? 'Locating…'
   const conditionText = weather ? weatherCodeText(weather.weatherCode) : 'locating…'
   const tempText = weather ? formatTemp(weather.temperatureC, fahrenheit) : '—'
-  const forecastText = weather
-    ? `${capitalize(weatherCodeText(weather.dailyCode))} · High ${formatDegree(weather.highC, fahrenheit)}, Low ${formatDegree(weather.lowC, fahrenheit)}`
+  const forecastShort = weather
+    ? `↑${formatDegree(weather.highC, fahrenheit)} ↓${formatDegree(weather.lowC, fahrenheit)}`
     : ''
 
-  // The mode picker lives in one fixed spot across every view so it never jumps.
-  const picker = (
-    <div className="fixed right-4 top-4 z-50">
-      <ModePicker />
+  // Full-bleed wall, with the painting capped at 80% of the smaller axis so there's matting around it.
+  const canvas = (
+    <div className="flex h-full w-full items-center justify-center" style={{ background: bg }}>
+      <div className="flex h-4/5 w-4/5 items-center justify-center" style={{ containerType: 'size' }}>
+        <Painting composition={composition} palette={palette} />
+      </div>
     </div>
   )
 
-  if (mode === 'explore') {
+  if (mode === 'about') {
     return (
       <>
-        <div className="min-h-screen w-screen overflow-auto pt-16 text-white">
+        <div className="min-h-screen w-screen overflow-auto pt-20 text-white">
           <Explore />
         </div>
-        {picker}
+        <TopBar><ModePicker /></TopBar>
       </>
     )
   }
 
-  if (mode === 'ambient') {
-    return (
-      <>
-        <div className="h-screen w-screen">
-          <div className="flex h-full w-full items-center justify-center bg-[#0d0d0d]">
-            <Painting composition={composition} palette={palette} />
-          </div>
-          <Overlay>
-            <div className="fixed bottom-6 left-6 text-sm italic text-white/80">{title}</div>
-          </Overlay>
-        </div>
-        {picker}
-      </>
-    )
-  }
-
+  // Live: fullscreen painting. Click the painting to hide the chrome (go immersive),
+  // click again to bring it back. Clicks on the chrome itself don't toggle.
   return (
-    <>
-      <div className="flex h-screen w-screen flex-col overflow-auto md:flex-row md:overflow-hidden">
-        <SideRail
-          placeName={place?.name ?? error ?? 'Locating…'}
-          tempText={tempText}
-          conditionText={conditionText}
-          forecastText={forecastText}
-          hour={hour}
-          title={title}
-          stale={stale}
-          onSelectCity={selectPlace}
-        />
-        <div className="flex min-h-0 flex-1 items-center justify-center bg-[#0d0d0d] p-3">
-          <Painting composition={composition} palette={palette} />
-        </div>
+    <div className="h-screen w-screen" onClick={() => setChromeVisible((v) => !v)}>
+      {canvas}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={`transition-opacity duration-500 ${chromeVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+      >
+        <TopBar>
+          <div className="w-44 max-w-[60vw]">
+            <CitySearch onSelect={selectPlace} />
+          </div>
+          <Divider />
+          <div className="flex flex-col items-center justify-center leading-tight">
+            <div className="flex items-center gap-1.5">
+              <span className="font-medium text-white">{placeName}</span>
+              <span className="text-white/30">|</span>
+              <span>{hour}</span>
+              {stale && <span className="text-white/40">(stale)</span>}
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-x-2 text-white/70">
+              <span className="whitespace-nowrap">{tempText} {conditionText}</span>
+              {forecastShort && <span className="whitespace-nowrap text-white/50">{forecastShort}</span>}
+            </div>
+          </div>
+          <Divider />
+          <ModePicker />
+          <BgToggle light={lightBg} onToggle={() => setLightBg((v) => !v)} />
+        </TopBar>
+        <Title light={lightBg}>{title}</Title>
       </div>
-      {picker}
-    </>
+    </div>
   )
 }
 
 const App = () => {
   const params = new URLSearchParams(window.location.search)
-  const initial = params.get('mode') === 'explore' ? 'explore' : undefined
+  const initial = params.get('mode') === 'about' ? 'about' : undefined
   return (
     <UnitsProvider>
       <ModeProvider initialMode={initial}>

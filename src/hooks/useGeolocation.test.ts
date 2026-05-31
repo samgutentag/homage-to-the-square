@@ -26,6 +26,6 @@ describe('useGeolocation', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')))
     const { result } = renderHook(() => useGeolocation())
     await waitFor(() => expect(result.current.place).not.toBeNull())
-    expect(result.current.place?.name).toMatch(/default/i)
+    expect(result.current.place?.name).toMatch(/santa barbara/i)
   })
 })
