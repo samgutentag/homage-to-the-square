@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   tempToHue, skyToChroma, skyDayLightness, lightnessFor,
-  sunToWarmShift, visibilityToFogContrast, isNight, moonToLift, sunToOffset,
+  sunToWarmShift, visibilityToFogContrast, isNight, moonToLift, sunToLift,
 } from './mappers'
 
 describe('tempToHue', () => {
@@ -67,9 +67,9 @@ describe('isNight / moonToLift', () => {
   })
 })
 
-describe('sunToOffset', () => {
-  it('pushes down at low sun, centers at high sun', () => {
-    expect(sunToOffset(60)).toBeCloseTo(0, 1)
-    expect(sunToOffset(-10)).toBeCloseTo(8, 1)
+describe('sunToLift', () => {
+  it('is zero at night and lifts at high sun', () => {
+    expect(sunToLift(-10)).toBeCloseTo(0, 1)
+    expect(sunToLift(60)).toBeCloseTo(4, 1)
   })
 })

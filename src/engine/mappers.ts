@@ -38,5 +38,11 @@ export const isNight = (elevationDeg: number): boolean => elevationDeg < -6
 export const moonToLift = (illumination: number, night: boolean): number =>
   night ? clamp01(illumination) : 0
 
-export const sunToOffset = (elevationDeg: number): number =>
-  lerp(8, 0, clamp01((elevationDeg + 10) / 70))
+/**
+ * Vertical lift (%) applied to inner squares. Zero at night — the squares rest in
+ * Albers' canonical pushed-down position — rising gently toward center at high sun.
+ * Lifting (never pushing further down) keeps the bottom margin from getting snugger
+ * than the real paintings.
+ */
+export const sunToLift = (elevationDeg: number): number =>
+  lerp(0, 4, clamp01((elevationDeg + 10) / 70))
