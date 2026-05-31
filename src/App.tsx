@@ -63,7 +63,7 @@ const Stage = () => {
     return (
       <>
         <div className="h-screen w-screen">
-          <div className="flex h-full w-full items-center justify-center bg-[#0d0d0d]">
+          <div className="flex h-full w-full items-center justify-center bg-[#0d0d0d]" style={{ containerType: 'size' }}>
             <Painting composition={composition} palette={palette} />
           </div>
           <Overlay>
@@ -88,7 +88,7 @@ const Stage = () => {
           stale={stale}
           onSelectCity={selectPlace}
         />
-        <div className="flex min-h-0 flex-1 items-center justify-center bg-[#0d0d0d] p-3">
+        <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center bg-[#0d0d0d] p-3" style={{ containerType: 'size' }}>
           <Painting composition={composition} palette={palette} />
         </div>
       </div>

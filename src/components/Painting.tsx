@@ -5,8 +5,8 @@ interface PaintingProps { composition: Composition; palette: OklchColor[] }
 
 export const Painting = ({ composition, palette }: PaintingProps) => (
   <div
-    className="relative aspect-square"
-    style={{ width: 'min(95vw, 95vh)', maxWidth: '100%', maxHeight: '100%' }}
+    className="relative"
+    style={{ width: '100cqmin', height: '100cqmin' }}
     role="img"
     aria-label="Homage to the Square"
   >

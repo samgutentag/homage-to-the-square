@@ -63,7 +63,7 @@ export const Explore = () => {
   return (
     <div className="flex flex-wrap items-start gap-6 p-4 md:gap-8 md:p-8">
       <div>
-        <div className="flex aspect-square w-[min(95vw,380px)] items-center justify-center rounded-md bg-[#0d0d0d] p-2">
+        <div className="flex aspect-square w-[min(95vw,380px)] items-center justify-center rounded-md bg-[#0d0d0d] p-2" style={{ containerType: 'size' }}>
           <Painting composition={composition} palette={palette} />
         </div>
         <div className="mt-4 w-[min(95vw,380px)] text-center italic text-white/85">{title}</div>

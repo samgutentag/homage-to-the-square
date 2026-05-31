@@ -1,0 +1,38 @@
+{
+  "hash": "19aa6ff9",
+  "configHash": "47028e90",
+  "lockfileHash": "c9755a8c",
+  "browserHash": "6ee7857b",
+  "optimized": {
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "1d42b4a4",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "af43eb56",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "02aa4fa7",
+      "needsInterop": true
+    },
+    "suncalc": {
+      "src": "../../node_modules/suncalc/suncalc.js",
+      "file": "suncalc.js",
+      "fileHash": "319c8982",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-BvCyGRYZ": {
+      "file": "chunk-BvCyGRYZ.js",
+      "isDynamicEntry": false
+    }
+  }
+}
