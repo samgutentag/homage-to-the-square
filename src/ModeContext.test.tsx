@@ -10,7 +10,7 @@ describe('ModeProvider', () => {
     expect(screen.getByText('live')).toBeInTheDocument()
   })
   it('honors initialMode', () => {
-    render(<ModeProvider initialMode="playground"><Probe /></ModeProvider>)
-    expect(screen.getByText('playground')).toBeInTheDocument()
+    render(<ModeProvider initialMode="about"><Probe /></ModeProvider>)
+    expect(screen.getByText('about')).toBeInTheDocument()
   })
 })

@@ -4,6 +4,7 @@ import { buildPalette } from '../engine/palette'
 import { buildComposition } from '../engine/composition'
 import { envFromSignals, hourToElev } from '../engine/scenarios'
 import { warmthWord, clarityWord, timeOfDayWord, generateTitle } from '../engine/title'
+import { HomageLink, PaintingTitle } from './HomageTitle'
 import type { Environment, ScenarioSignals } from '../engine/types'
 
 const BASE: ScenarioSignals = { hour: 13, tempC: 18, cloud: 10, precipMm: 0, visM: 20000, moon: 0, humidity: 25 }
@@ -78,7 +79,7 @@ export const Methodology = ({ env, hour }: MethodologyProps) => {
     <section className="mx-auto max-w-4xl px-4 pb-16 pt-4 text-white/85 md:px-8">
       <h2 className="text-lg font-semibold text-white">Methodology</h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
-        Albers' <em>Homage to the Square</em> is a fixed geometry — flat nested squares pushed toward the
+        Albers' <HomageLink className="italic underline decoration-dotted underline-offset-2 hover:decoration-solid">Homage to the Square</HomageLink> is a fixed geometry — flat nested squares pushed toward the
         bottom — so the painting is really a function: weather and the sun become a palette and a
         composition. Every square below is rendered by the same engine the live view uses. Color is computed
         in OKLCH so transitions stay perceptually even.
@@ -131,7 +132,7 @@ export const Methodology = ({ env, hour }: MethodologyProps) => {
           <Band rows={TOD} active={timeOfDayWord(h)} />
         </div>
       </div>
-      <p className="mt-4 text-center text-sm italic text-white/80">{title}</p>
+      <p className="mt-4 text-center text-sm italic text-white/80"><PaintingTitle title={title} /></p>
 
       <h3 className="mt-10 text-sm font-semibold uppercase tracking-wider text-white/40">Notes</h3>
       <ul className="mt-3 max-w-2xl list-disc space-y-2 pl-5 text-sm leading-relaxed text-white/60">

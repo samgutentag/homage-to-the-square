@@ -9,9 +9,9 @@ describe('ModePicker', () => {
   it('switches the active mode through the popover', () => {
     render(<ModeProvider><ModePicker /><Probe /></ModeProvider>)
     expect(screen.getByTestId('mode').textContent).toBe('live')
-    // open the Mode popover, then pick Playground
+    // open the Mode popover, then pick About
     fireEvent.click(screen.getByRole('button', { name: /mode/i }))
-    fireEvent.click(screen.getByRole('menuitemradio', { name: /playground/i }))
-    expect(screen.getByTestId('mode').textContent).toBe('playground')
+    fireEvent.click(screen.getByRole('menuitemradio', { name: /about/i }))
+    expect(screen.getByTestId('mode').textContent).toBe('about')
   })
 })

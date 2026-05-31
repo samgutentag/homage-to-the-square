@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Painting } from './Painting'
 import { Timeline } from './Timeline'
 import { Methodology } from './Methodology'
+import { Footer } from './Footer'
+import { PaintingTitle } from './HomageTitle'
 import { buildPalette } from '../engine/palette'
 import { buildComposition } from '../engine/composition'
 import { deriveEnvironment } from '../engine/environment'
@@ -68,7 +70,7 @@ export const Explore = () => {
         <div className="flex aspect-square w-[min(95vw,380px)] items-center justify-center rounded-md bg-[#0d0d0d] p-2" style={{ containerType: 'size' }}>
           <Painting composition={composition} palette={palette} />
         </div>
-        <div className="mt-4 w-[min(95vw,380px)] text-center italic text-white/85">{title}</div>
+        <div className="mt-4 w-[min(95vw,380px)] text-center italic text-white/85"><PaintingTitle title={title} /></div>
         {active && (
           <div className="mt-4 flex justify-center">
             <Timeline gradient={gradient} progress={progress} name={active.name} label={active.id === 'clearDay' ? fmtHour(s.hour) : `${Math.round(progress * 100)}%`} />
@@ -102,6 +104,7 @@ export const Explore = () => {
       </div>
     </div>
     <Methodology env={env} hour={s.hour} />
+    <Footer />
     </>
   )
 }

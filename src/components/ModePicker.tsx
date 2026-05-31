@@ -4,7 +4,7 @@ import { useMode } from '../ModeContext'
 
 const MODES: { value: ViewMode; label: string }[] = [
   { value: 'live', label: 'Live' },
-  { value: 'playground', label: 'Playground' },
+  { value: 'about', label: 'About' },
 ]
 
 export const ModePicker = () => {

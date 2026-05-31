@@ -13,6 +13,7 @@ import { weatherCodeText } from './weatherText'
 import { Painting } from './components/Painting'
 import { ModePicker } from './components/ModePicker'
 import { CitySearch } from './components/CitySearch'
+import { PaintingTitle } from './components/HomageTitle'
 import { Explore } from './components/Explore'
 import type { Environment } from './engine/types'
 
@@ -46,7 +47,7 @@ const Divider = () => <span className="hidden h-5 w-px bg-white/15 sm:block" />
 
 const Title = ({ children, light }: { children: string; light: boolean }) => (
   <div className={`fixed bottom-6 left-6 z-40 max-w-[80vw] text-sm italic ${light ? 'text-black/70' : 'text-white/80'}`}>
-    {children}
+    <PaintingTitle title={children} />
   </div>
 )
 
@@ -84,7 +85,7 @@ const Stage = () => {
     </div>
   )
 
-  if (mode === 'playground') {
+  if (mode === 'about') {
     return (
       <>
         <div className="min-h-screen w-screen overflow-auto pt-20 text-white">
@@ -133,7 +134,7 @@ const Stage = () => {
 
 const App = () => {
   const params = new URLSearchParams(window.location.search)
-  const initial = params.get('mode') === 'playground' ? 'playground' : undefined
+  const initial = params.get('mode') === 'about' ? 'about' : undefined
   return (
     <UnitsProvider>
       <ModeProvider initialMode={initial}>
