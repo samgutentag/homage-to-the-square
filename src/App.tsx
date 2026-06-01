@@ -13,8 +13,6 @@ import { buildComposition } from './engine/composition'
 import { generateTitle } from './engine/title'
 import { weatherCodeText } from './weatherText'
 import { Painting } from './components/Painting'
-import { ModePicker } from './components/ModePicker'
-import { CitySearch } from './components/CitySearch'
 import { PaintingTitle } from './components/HomageTitle'
 import { Explore } from './components/Explore'
 import { SettingsModal } from './components/SettingsModal'
@@ -40,6 +38,16 @@ const GearButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 )
 
+const BackButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex items-center gap-1.5 rounded-full border border-white/40 px-3 py-1 text-xs text-white/85 hover:text-white"
+  >
+    <span aria-hidden>‹</span> Back
+  </button>
+)
+
 const TopBar = ({ children }: { children: ReactNode }) => (
   <div className="fixed inset-x-2 top-2 z-50 flex justify-center sm:inset-x-0 sm:top-3">
     <div className="flex w-full max-w-[calc(100vw-1rem)] flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-2xl border border-white/15 bg-black/55 px-4 py-2 text-sm text-white/85 shadow-lg backdrop-blur-md sm:w-auto sm:rounded-full">
@@ -57,7 +65,7 @@ const Title = ({ children, light }: { children: string; light: boolean }) => (
 )
 
 const Stage = () => {
-  const { mode } = useMode()
+  const { mode, setMode } = useMode()
   const { fahrenheit, lightBg, scalingMode } = useSettings()
   const [chromeVisible, setChromeVisible] = useState(true)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -106,7 +114,13 @@ const Stage = () => {
   )
 
   const gear = <GearButton onClick={() => setSettingsOpen(true)} />
-  const modal = settingsOpen ? <SettingsModal onClose={() => setSettingsOpen(false)} /> : null
+  const modal = settingsOpen ? (
+    <SettingsModal
+      onClose={() => setSettingsOpen(false)}
+      onLearnMode={() => { setMode('about'); setSettingsOpen(false) }}
+      onSelectPlace={(place) => { selectPlace(place); setSettingsOpen(false) }}
+    />
+  ) : null
 
   if (mode === 'about') {
     return (
@@ -114,8 +128,7 @@ const Stage = () => {
         <div className="min-h-screen w-full overflow-x-hidden overflow-y-auto pt-20 text-white">
           <Explore />
         </div>
-        <TopBar><ModePicker />{gear}</TopBar>
-        {modal}
+        <TopBar><BackButton onClick={() => setMode('live')} /></TopBar>
       </>
     )
   }
@@ -130,10 +143,6 @@ const Stage = () => {
         className={`transition-opacity duration-500 ${chromeVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
       >
         <TopBar>
-          <div className="w-44 max-w-[60vw]">
-            <CitySearch onSelect={selectPlace} />
-          </div>
-          <Divider />
           <div className="flex flex-col items-center justify-center leading-tight">
             <div className="flex items-center gap-1.5">
               <span className="font-medium text-white">{placeName}</span>
@@ -147,7 +156,6 @@ const Stage = () => {
             </div>
           </div>
           <Divider />
-          <ModePicker />
           {gear}
         </TopBar>
         <Title light={lightBg}>{title}</Title>
