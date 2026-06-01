@@ -12,6 +12,20 @@ describe('tempToHue', () => {
     expect(tempToHue(-50)).toBeCloseTo(250, 0)
     expect(tempToHue(99)).toBeCloseTo(50, 0)
   })
+  it('stretches the spectrum across a custom local range', () => {
+    const range = { coldC: 10, hotC: 27 } // a mild Santa Barbara band
+    expect(tempToHue(10, range)).toBeCloseTo(250, 0) // local cold -> full blue
+    expect(tempToHue(27, range)).toBeCloseTo(50, 0) // local hot -> full warm
+    // A mild city's everyday swing covers far more of the spectrum on the local
+    // scale than on the wide global one — the whole point of the feature.
+    const localSpread = tempToHue(10, range) - tempToHue(27, range)
+    const globalSpread = tempToHue(10) - tempToHue(27)
+    expect(localSpread).toBeGreaterThan(globalSpread)
+  })
+  it('falls back to the global range when the range is degenerate', () => {
+    expect(tempToHue(20, { coldC: 20, hotC: 20 })).toBeCloseTo(tempToHue(20), 5)
+    expect(tempToHue(20, { coldC: 30, hotC: 10 })).toBeCloseTo(tempToHue(20), 5)
+  })
 })
 
 describe('skyToChroma', () => {

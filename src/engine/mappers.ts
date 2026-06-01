@@ -1,12 +1,17 @@
 import { clamp, clamp01, lerp } from './color'
+import type { TempRange } from './types'
 
 const COLD_HUE = 250
 const HOT_HUE = 50
-const COLD_TEMP = -10
-const HOT_TEMP = 35
 
-export const tempToHue = (tempC: number): number => {
-  const t = clamp01((tempC - COLD_TEMP) / (HOT_TEMP - COLD_TEMP))
+/** Wide global span used when no local climate range is supplied. */
+export const DEFAULT_RANGE: TempRange = { coldC: -10, hotC: 35 }
+
+export const tempToHue = (tempC: number, range: TempRange = DEFAULT_RANGE): number => {
+  // A flat or inverted range (e.g. a degenerate daily forecast) would divide by zero
+  // or flip the scale — fall back to the global span instead.
+  const { coldC, hotC } = range.hotC > range.coldC ? range : DEFAULT_RANGE
+  const t = clamp01((tempC - coldC) / (hotC - coldC))
   return COLD_HUE + t * (HOT_HUE - COLD_HUE)
 }
 

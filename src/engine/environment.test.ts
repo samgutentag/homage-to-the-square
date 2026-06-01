@@ -23,4 +23,11 @@ describe('deriveEnvironment', () => {
     expect(env.moonLift).toBeCloseTo(0.9, 5)
     expect(env.lightness).toBeLessThan(0.2)
   })
+  it('passes the local range through to the hue', () => {
+    const sky: Sky = { sunElevationDeg: 40, moonIllumination: 0 }
+    const global = deriveEnvironment(clearWeather, sky)
+    const local = deriveEnvironment(clearWeather, sky, { coldC: 18, hotC: 22 })
+    // 20°C sits at the top of the global range's cool half but mid a tight local band.
+    expect(local.hueDeg).not.toBeCloseTo(global.hueDeg, 0)
+  })
 })

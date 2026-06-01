@@ -36,6 +36,15 @@ export interface ResolvedPlace { lat: number; lon: number; name: string }
 
 export type ViewMode = 'live' | 'about'
 
+/** Which climatological window the temperature→hue scale stretches across. */
+export type ScalingMode = 'daily' | 'monthly' | 'annual'
+
+/** Temperature endpoints (°C) the hue scale maps onto blue→warm. */
+export interface TempRange { coldC: number; hotC: number }
+
+/** Per-location climate ranges derived from the historical archive. */
+export interface ClimateRanges { annual: TempRange; monthly: TempRange[] } // monthly: length 12, index = month 0–11
+
 /** Canonical (metric) signal values a scenario emits at a point in its loop. */
 export interface ScenarioSignals {
   hour: number // 0..24

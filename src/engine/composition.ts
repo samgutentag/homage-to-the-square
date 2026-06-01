@@ -29,7 +29,8 @@ const lerpInset = (a: Inset, b: Inset, t: number): Inset => ({
 })
 
 export const buildComposition = (humidity: number, sunElevationDeg: number): Composition => {
-  const t = clamp01((humidity - 35) / 30)
+  // High humidity → 4 squares (t=0, T4); low humidity → 3 squares (t=1, T3).
+  const t = clamp01((65 - humidity) / 30)
   const lift = sunToLift(sunElevationDeg)
   const insets: Inset[] = T4.map((a, i) => {
     const blended = i === 0 ? ground : lerpInset(a, T3[i], t)

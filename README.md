@@ -11,9 +11,11 @@ Inspired by [rothko.joonas.wtf](https://rothko.joonas.wtf/), but procedural rath
 - **Sun elevation → the squares' vertical position** + the day/night gate
 - **Visibility/fog → contrast between the squares** (fog merges them)
 - **Moon phase → a glow on the center square at night**
-- **Humidity → 3 ↔ 4 squares**, crossfading between two authentic Albers templates
+- **Humidity → 3 ↔ 4 squares**, crossfading between two authentic Albers templates — humid air adds the fourth square, dry air drops to three
 
 All color is computed in OKLCH for even, perceptually-uniform transitions.
+
+The temperature→hue scale stretches across a **local climate range** so mild places still show the full spectrum. A settings dialog (⚙) picks the window — **Daily** (today's forecast high/low), **Monthly**, or **Annual** — alongside °F/°C, Imperial/Metric, and the dark/light backdrop. Monthly and annual ranges come from the Open-Meteo historical archive (one cached call per city); daily reuses the current forecast.
 
 ## Prototype
 
@@ -27,4 +29,4 @@ See [`docs/superpowers/specs/`](docs/superpowers/specs/) for the full design spe
 
 ## Stack
 
-React + TypeScript + Vite + Tailwind. Weather + geocoding via [Open-Meteo](https://open-meteo.com/) (no API key); sun/moon via [suncalc](https://github.com/mourner/suncalc). Fully client-side; builds to a static bundle.
+React + TypeScript + Vite + Tailwind. Weather, geocoding, and historical climate via [Open-Meteo](https://open-meteo.com/) (no API key); sun/moon via [suncalc](https://github.com/mourner/suncalc). Fully client-side; builds to a static bundle.

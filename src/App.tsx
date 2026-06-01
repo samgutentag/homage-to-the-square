@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from 'react'
 import { ModeProvider, useMode } from './ModeContext'
-import { UnitsProvider, useUnits, formatTemp, formatDegree } from './UnitsContext'
+import { SettingsProvider, useSettings, formatTemp, formatDegree } from './SettingsContext'
 import { useClock } from './hooks/useClock'
 import { usePlace } from './hooks/usePlace'
 import { useWeather } from './hooks/useWeather'
 import { useSky } from './hooks/useSky'
+import { useClimateRange } from './hooks/useClimateRange'
+import { useReveal } from './hooks/useReveal'
 import { deriveEnvironment } from './engine/environment'
 import { buildPalette } from './engine/palette'
 import { buildComposition } from './engine/composition'
@@ -15,23 +17,26 @@ import { ModePicker } from './components/ModePicker'
 import { CitySearch } from './components/CitySearch'
 import { PaintingTitle } from './components/HomageTitle'
 import { Explore } from './components/Explore'
-import type { Environment } from './engine/types'
+import { SettingsModal } from './components/SettingsModal'
+import type { Environment, TempRange } from './engine/types'
 
-const NEUTRAL: Environment = { hueDeg: 220, chroma: 0.25, lightness: 0.4, warmShift: 0, fogContrast: 1, moonLift: 0 }
+// Quiet near-neutral gray. Only shown on the rare failure path (weather never loads);
+// the normal path gates the reveal on real data, so this no longer flashes on startup.
+const NEUTRAL: Environment = { hueDeg: 250, chroma: 0.02, lightness: 0.4, warmShift: 0, fogContrast: 1, moonLift: 0 }
 
 // The "wall" the painting hangs on. Not pure black/white — a near-black and a soft gallery off-white.
 const DARK_BG = '#0d0d0d'
 const LIGHT_BG = '#f1efe8'
 
-const BgToggle = ({ light, onToggle }: { light: boolean; onToggle: () => void }) => (
+const GearButton = ({ onClick }: { onClick: () => void }) => (
   <button
     type="button"
-    onClick={onToggle}
-    aria-label="Toggle background"
-    title="Toggle background"
+    onClick={onClick}
+    aria-label="Open settings"
+    title="Settings"
     className="rounded-full border border-white/40 px-2.5 py-1 text-xs leading-none text-white/85 hover:text-white"
   >
-    {light ? '◑' : '◐'}
+    ⚙
   </button>
 )
 
@@ -53,9 +58,9 @@ const Title = ({ children, light }: { children: string; light: boolean }) => (
 
 const Stage = () => {
   const { mode } = useMode()
-  const { fahrenheit } = useUnits()
-  const [lightBg, setLightBg] = useState(false)
+  const { fahrenheit, lightBg, scalingMode } = useSettings()
   const [chromeVisible, setChromeVisible] = useState(true)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const bg = lightBg ? LIGHT_BG : DARK_BG
   const now = useClock(60000)
   const { place, selectPlace } = usePlace()
@@ -63,8 +68,19 @@ const Stage = () => {
   const lon = place.lon
   const { weather, stale } = useWeather(lat, lon)
   const sky = useSky(now, lat, lon)
+  const climate = useClimateRange(lat, lon)
+  const revealed = useReveal(Boolean(weather && sky))
 
-  const env = weather && sky ? deriveEnvironment(weather, sky) : NEUTRAL
+  // The temperature→hue scale stretches across the window the user picked. Undefined
+  // (no data yet, or fetch failed) → deriveEnvironment falls back to the global range.
+  const activeRange: TempRange | undefined =
+    scalingMode === 'daily'
+      ? (weather ? { coldC: weather.lowC, hotC: weather.highC } : undefined)
+      : scalingMode === 'monthly'
+        ? climate?.monthly[now.getMonth()]
+        : climate?.annual
+
+  const env = weather && sky ? deriveEnvironment(weather, sky, activeRange) : NEUTRAL
   const palette = buildPalette(env)
   const composition = buildComposition(weather?.relativeHumidity ?? 50, sky?.sunElevationDeg ?? 30)
   const title = generateTitle(env, now)
@@ -76,14 +92,21 @@ const Stage = () => {
     ? `↑${formatDegree(weather.highC, fahrenheit)} ↓${formatDegree(weather.lowC, fahrenheit)}`
     : ''
 
-  // Full-bleed wall, with the painting capped at 80% of the smaller axis so there's matting around it.
+  // Full-bleed wall, with the painting capped at 80% of the smaller axis so there's matting
+  // around it. The painting fades up from the wall on first load (opacity 0 → 1).
   const canvas = (
     <div className="flex h-full w-full items-center justify-center" style={{ background: bg }}>
-      <div className="flex h-4/5 w-4/5 items-center justify-center" style={{ containerType: 'size' }}>
+      <div
+        className="flex h-4/5 w-4/5 items-center justify-center"
+        style={{ containerType: 'size', opacity: revealed ? 1 : 0, transition: 'opacity 1200ms ease' }}
+      >
         <Painting composition={composition} palette={palette} />
       </div>
     </div>
   )
+
+  const gear = <GearButton onClick={() => setSettingsOpen(true)} />
+  const modal = settingsOpen ? <SettingsModal onClose={() => setSettingsOpen(false)} /> : null
 
   if (mode === 'about') {
     return (
@@ -91,7 +114,8 @@ const Stage = () => {
         <div className="min-h-screen w-full overflow-x-hidden overflow-y-auto pt-20 text-white">
           <Explore />
         </div>
-        <TopBar><ModePicker /></TopBar>
+        <TopBar><ModePicker />{gear}</TopBar>
+        {modal}
       </>
     )
   }
@@ -124,10 +148,11 @@ const Stage = () => {
           </div>
           <Divider />
           <ModePicker />
-          <BgToggle light={lightBg} onToggle={() => setLightBg((v) => !v)} />
+          {gear}
         </TopBar>
         <Title light={lightBg}>{title}</Title>
       </div>
+      {modal}
     </div>
   )
 }
@@ -136,11 +161,11 @@ const App = () => {
   const params = new URLSearchParams(window.location.search)
   const initial = params.get('mode') === 'about' ? 'about' : undefined
   return (
-    <UnitsProvider>
+    <SettingsProvider>
       <ModeProvider initialMode={initial}>
         <Stage />
       </ModeProvider>
-    </UnitsProvider>
+    </SettingsProvider>
   )
 }
 

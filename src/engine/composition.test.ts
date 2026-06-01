@@ -7,11 +7,11 @@ describe('buildComposition', () => {
     expect(c.insets).toHaveLength(4)
     expect(c.opacities).toHaveLength(4)
   })
-  it('keeps the innermost square solid at low humidity (4-square)', () => {
-    expect(buildComposition(10, 40).opacities[3]).toBeCloseTo(1, 5)
+  it('keeps the innermost square solid at high humidity (4-square)', () => {
+    expect(buildComposition(90, 40).opacities[3]).toBeCloseTo(1, 5)
   })
-  it('fades the innermost square out at high humidity (3-square)', () => {
-    expect(buildComposition(90, 40).opacities[3]).toBeCloseTo(0, 5)
+  it('fades the innermost square out at low humidity (3-square)', () => {
+    expect(buildComposition(10, 40).opacities[3]).toBeCloseTo(0, 5)
   })
   it('low sun pushes the inner squares further down (larger top inset)', () => {
     const high = buildComposition(30, 60)

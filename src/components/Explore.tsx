@@ -9,7 +9,7 @@ import { buildComposition } from '../engine/composition'
 import { deriveEnvironment } from '../engine/environment'
 import { generateTitle } from '../engine/title'
 import { SCENARIOS, hourToElev, timelineGradient } from '../engine/scenarios'
-import { useUnits } from '../UnitsContext'
+import { useSettings } from '../SettingsContext'
 import type { Scenario, Weather, Sky } from '../engine/types'
 
 interface Signals { hour: number; tempC: number; cloud: number; precipMm: number; visM: number; moon: number; humidity: number }
@@ -24,7 +24,7 @@ const fmtHour = (h: number) => {
 
 export const Explore = () => {
   const [s, setS] = useState<Signals>(INITIAL)
-  const { fahrenheit, imperial, setFahrenheit, setImperial } = useUnits()
+  const { fahrenheit, imperial } = useSettings()
   const [active, setActive] = useState<Scenario | null>(null)
   const [progress, setProgress] = useState(0)
   const raf = useRef<number | undefined>(undefined)
@@ -90,17 +90,13 @@ export const Explore = () => {
       </div>
 
       <div className="w-full text-white/85 md:min-w-[340px] md:flex-1">
-        <div className="mb-5 flex gap-2">
-          <button onClick={() => setFahrenheit((v) => !v)} className="rounded-full border border-white/30 px-3 py-1 text-xs">Temperature: {fahrenheit ? '°F' : '°C'}</button>
-          <button onClick={() => setImperial((v) => !v)} className="rounded-full border border-white/30 px-3 py-1 text-xs">Units: {imperial ? 'Imperial' : 'Metric'}</button>
-        </div>
         <Slider label="Time of day" hint="Sun height moves the squares: they rise toward center at midday, sink toward the bottom at night." value={fmtHour(s.hour) + ' · ' + Math.round(elev) + '°'} min={0} max={24} step={0.25} v={s.hour} onChange={(hour) => set({ hour })} />
         <Slider label="Temperature" hint="Sets the base hue — cold leans cool blue, hot leans warm ochre." value={tempDisplay + (fahrenheit ? '°F' : '°C')} min={-18} max={43} step={0.5} v={s.tempC} onChange={(tempC) => set({ tempC })} />
         <Slider label="Cloud cover" hint="More cloud drains the color and dims the daytime brightness." value={s.cloud + '%'} min={0} max={100} step={1} v={s.cloud} onChange={(cloud) => set({ cloud })} />
         <Slider label="Precipitation" hint="Rain deepens the gray and darkens the whole painting." value={precipDisplay} min={0} max={10} step={0.1} v={s.precipMm} onChange={(precipMm) => set({ precipMm })} />
         <Slider label="Visibility / fog" hint="Fog compresses the contrast between squares until they nearly merge." value={visDisplay} min={50} max={20000} step={50} v={s.visM} onChange={(visM) => set({ visM })} />
         <Slider label="Moon illumination" hint="At night only, a brighter moon lifts the value of the innermost square." value={Math.round(s.moon * 100) + '%'} min={0} max={1} step={0.01} v={s.moon} onChange={(moon) => set({ moon })} />
-        <Slider label="Humidity → squares (3↔4)" hint="Higher humidity morphs the composition from four squares down to three." value={s.humidity + '%'} min={0} max={100} step={1} v={s.humidity} onChange={(humidity) => set({ humidity })} />
+        <Slider label="Humidity → squares (3↔4)" hint="Higher humidity morphs the composition from three squares up to four." value={s.humidity + '%'} min={0} max={100} step={1} v={s.humidity} onChange={(humidity) => set({ humidity })} />
       </div>
     </div>
     <Methodology env={env} hour={s.hour} />
